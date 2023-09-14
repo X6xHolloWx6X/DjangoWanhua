@@ -1,30 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>CRUD</title>
-    </head>
-    <body>
-        <nav>
-            <ul><li>
-                    <a href="/">Home</a>
-                </li>
-            </ul>
-            <ul><li><a href="/tasks">Task</a>
-                </li>
-            </ul>
-            <ul><li><a href="/signup">signup</a></li></ul>
-            {% if user.is_authenticated %}
-            <ul>
-                <li>
-                    <a href="/salir">salir</a>
-                </li>
-            </ul>
-            {% endif %}
-        </nav>
-        {% block content %}
-        {% endblock %}
-
-    </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li>
+                <a href="/">Home</a>
+            </li>
+        </ul>
+        <ul>
+            <li>
+                <a href="/tasks">Task</a>
+            </li>
+        </ul>
+        {% if user.is_authenticated %}
+        <ul>
+            <li>
+                <a href="/salir">salir</a>
+            </li>
+        </ul>
+        {% else %}
+        <ul>
+            <li>
+                <a href="/signup">signup</a>
+            </li>
+            <li>
+                <a href="/login">login</a>
+            </li>
+        </ul>
+        {% endif %}
+    </nav>
+    {% block content %}
+    {% endblock %}
+</body>
 </html>
