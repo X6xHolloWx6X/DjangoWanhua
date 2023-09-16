@@ -1,10 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.contrib.auth import login, logout, authenticate
-
-
+from django.http import HttpResponse, JsonResponse
+from .models import Cliente
+from .forms import ClienteForm
 def home(request):
     return render(request, "home.html")
 
@@ -67,4 +68,36 @@ def login_entrar(request):
             login(request, user)
             return redirect("tasks")
         
-        return render(request, "login.html", {"form": AuthenticationForm})
+
+def lista_clientes(request):
+    clientes = Cliente.objects.all()
+    return render(request, 'clientes.html', {'clientes': clientes})
+
+def crear_cliente(request):
+    if request.method == 'POST':
+        form = ClienteForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('clientes')  # Redirige a la vista lista_clientes
+
+    # Si no se realizó una solicitud POST o hubo errores en el formulario, renderiza el formulario nuevamente
+    clientes = Cliente.objects.all()
+    return render(request, 'clientes.html', {'clientes': clientes})
+
+def actualizar_cliente(request, cliente_id):
+    cliente = Cliente.objects.get(pk=cliente_id)
+    if request.method == 'POST':
+        form = ClienteForm(request.POST, instance=cliente)
+        if form.is_valid():
+            form.save()
+            return redirect('clientes')
+    else:
+        form = ClienteForm(instance=cliente)
+    return render(request, 'clientes.html', {'form': form, 'cliente': cliente})
+
+def eliminar_cliente(request, cliente_id):
+    cliente = Cliente.objects.get(pk=cliente_id)
+    if request.method == 'POST':
+        cliente.delete()
+        return redirect('clientes')
+    return render(request, 'clientes.html', {'cliente': cliente})

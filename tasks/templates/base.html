@@ -4,37 +4,119 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRUD</title>
+
+    <!-- Add Bootstrap CSS link -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
+    <style>
+        /* Estilo personalizado para la barra de navegación */
+        .navbar-custom {
+            background-color: #001f3f; /* Azul marino */
+            color: #fff; /* Texto blanco */
+        }
+
+        .navbar-custom .navbar-brand,
+        .navbar-custom .nav-link {
+            color: #fff !important; /* Texto blanco para enlaces */
+        }
+
+        .navbar-custom .navbar-toggler-icon {
+            background-color: #fff; /* Ícono del botón hamburguesa blanco */
+        }
+
+        /* Estilo personalizado para el cuerpo del contenido */
+        body {
+            background-color: #fff; /* Fondo blanco */
+            color: #001f3f; /* Texto azul marino */
+        }
+
+        /* Estilo personalizado para los enlaces */
+        .navbar-custom .nav-link:hover {
+            color: #ff5733 !important; /* Cambio de color al pasar el mouse (naranja) */
+        }
+
+        /* Estilo personalizado para la bienvenida */
+        .welcome-message {
+            background-color: #001f3f; /* Fondo azul marino */
+            color: #fff; /* Texto blanco */
+            padding: 10px;
+            position: fixed;
+            top: 0;
+            right: 0;
+            margin: 20px;
+            z-index: 1000; /* Asegura que esté por encima de otros elementos */
+        }
+    </style>
 </head>
 <body>
-    <nav>
-        <ul>
-            <li>
-                <a href="/">Home</a>
-            </li>
-        </ul>
-        <ul>
-            <li>
-                <a href="/tasks">Task</a>
-            </li>
-        </ul>
-        {% if user.is_authenticated %}
-        <ul>
-            <li>
-                <a href="/salir">salir</a>
-            </li>
-        </ul>
-        {% else %}
-        <ul>
-            <li>
-                <a href="/signup">signup</a>
-            </li>
-            <li>
-                <a href="/login">login</a>
-            </li>
-        </ul>
-        {% endif %}
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <a class="navbar-brand" href="/">Home</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/tasks">Task</a>
+                </li>
+                <!-- Debes adaptar la verificación de autenticación y el nombre de usuario aquí -->
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link" href=""></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/clientes">Clientes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/salir">Salir</a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="/signup">Registrarse</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/login">Entrar</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
     </nav>
-    {% block content %}
-    {% endblock %}
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Define la variable isAuthenticated antes de cargar el script -->
+    {% if user.is_authenticated %}
+        <script>
+            var isAuthenticated = true;
+            var username = "{{ user.username }}";
+        </script>
+    {% else %}
+        <script>
+            var isAuthenticated = false;
+        </script>
+    {% endif %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var welcomeMessageElement = document.createElement('div');
+            welcomeMessageElement.classList.add('welcome-message');
+            document.body.appendChild(welcomeMessageElement);
+
+            if (isAuthenticated) {
+                // Muestra el mensaje de bienvenida si el usuario está autenticado
+                welcomeMessageElement.textContent = '¡Hola, ' + username + '!';
+            } else {
+                welcomeMessageElement.textContent = 'Bienvenido a nuestra aplicación.';
+            }
+        });
+    </script>
+    <!-- ... (código HTML posterior) ... -->
+
+    <!-- Add Bootstrap JS and Popper.js -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

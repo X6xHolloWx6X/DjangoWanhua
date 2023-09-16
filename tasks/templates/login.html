@@ -1,11 +1,65 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Hola mundo</h1>
-<form action="/login/" method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Entrar</button>
-    {{error}}
-</form>
+<style>
+    /* Estilo personalizado para el fondo oscuro marino */
+    body {
+        background-color: #001f3f !important; /* Oscuro marino */
+    }
+
+    /* Estilo personalizado para la tarjeta */
+    .card {
+        border: none;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        background-color: #fff; /* Fondo blanco */
+    }
+
+    /* Estilo personalizado para el encabezado de la tarjeta */
+    .card-header {
+        background-color: #001f3f !important; /* Oscuro marino */
+        color: #fff; /* Texto blanco */
+        border: none;
+    }
+
+    /* Estilo personalizado para el botón */
+    .btn-primary {
+        background-color: #001f3f !important; /* Oscuro marino */
+        border: none;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: #ff5733 !important; /* Cambio de color al pasar el mouse (naranja) */
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-center">Iniciar Sesión en WANHUA</h2>
+                </div>
+                <div class="card-body">
+                    <form id="login-form" action="/login/" method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+                        </div>
+                        {{error}}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Agrega Bootstrap y jQuery (asegúrate de tener las URLs correctas) -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    // Agrega alguna lógica adicional de jQuery o animaciones si es necesario
+</script>
 {% endblock %}
