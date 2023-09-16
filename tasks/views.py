@@ -95,6 +95,22 @@ def editar_cliente(request, cliente_id):
     return JsonResponse({'error': 'Método no válido'}, status=400)
 
 def eliminar_cliente(request, cliente_id):
+    try:
+        cliente = Cliente.objects.get(pk=cliente_id)
+        cliente.delete()
+        return JsonResponse({'message': 'Cliente eliminado correctamente'})
+    except Cliente.DoesNotExist:
+        return JsonResponse({'error': 'Cliente no encontrado'}, status=404)
+    
+def obtener_cliente(request, cliente_id):
     cliente = get_object_or_404(Cliente, id_cliente=cliente_id)
-    cliente.delete()
-    return JsonResponse({'message': 'Cliente eliminado correctamente'})
+    data = {
+        'id_cliente': cliente.id_cliente,
+        'nombre': cliente.nombre,
+        'apellido': cliente.apellido,
+        'dni': cliente.dni,
+        'fecha_nacimiento': cliente.fecha_nacimiento,
+        'tipo_cliente': cliente.tipo_cliente,
+        # Otros campos si es necesario
+    }
+    return JsonResponse({'cliente': data})
