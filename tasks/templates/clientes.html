@@ -1,42 +1,253 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
-    <h1 class="mt-4">Registro de Clientes</h1>
-    <!-- Formulario para crear/actualizar clientes -->
-    <form id="cliente-form" method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="nombre">Nombre:</label>
-            <input type="text" class="form-control" id="nombre" name="nombre" required>
-        </div>
-        <div class="form-group">
-            <label for="apellido">Apellido:</label>
-            <input type="text" class="form-control" id="apellido" name="apellido" required>
-        </div>
-        <div class="form-group">
-            <label for="dni">DNI:</label>
-            <input type="text" class="form-control" id="dni" name="dni" required>
-        </div>
-        <div class="form-group">
-            <label for="tipo_cliente">Tipo de Cliente:</label>
-            <select class="form-control" id="tipo_cliente" name="tipo_cliente" required>
-                <option value="propietario">Propietario</option>
-                <option value="inquilino">Inquilino</option>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary" id="crear-btn">Crear</button>
-        <button type="button" class="btn btn-success" id="actualizar-btn">Actualizar</button>
-    </form>
+  <h2>Lista de Clientes</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Apellido</th>
+        <th>DNI</th>
+        <th>Fecha de Nacimiento</th>
+        <th>Tipo de Cliente</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cliente in clientes %}
+        <tr>
+          <td>{{ cliente.id_cliente }}</td>
+          <td>{{ cliente.nombre }}</td>
+          <td>{{ cliente.apellido }}</td>
+          <td>{{ cliente.dni }}</td>
+          <td>{{ cliente.fecha_nacimiento }}</td>
+          <td>{{ cliente.get_tipo_cliente_display }}</td>
+          <td>
+                <button class="btn btn-primary" onclick="editarCliente('{{ cliente.id_cliente }}')">Editar</button>
+                <button class="btn btn-danger" onclick="eliminarCliente('{{ cliente.id_cliente }}')">Eliminar</button>
+                <button class="btn btn-info" onclick="verInformacion('{{ cliente.id_cliente }}')">Ver Información</button>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-    <!-- Lista de Clientes -->
-    <ul>
-        {% for cliente in clientes %}
-        <li>{{ cliente.nombre }} {{ cliente.apellido }} - DNI: {{ cliente.dni }} - Tipo: {{ cliente.tipo_cliente }}
-            <a href="{% url 'actualizar_cliente' cliente.id %}" class="btn btn-warning">Editar</a>
-            <a href="{% url 'eliminar_cliente' cliente.id %}" class="btn btn-danger">Eliminar</a>
-        </li>
-        {% endfor %}
-    </ul>
-</div>
+  <!-- Botón para agregar cliente -->
+  <button class="btn btn-success" onclick="mostrarFormulario()">Agregar Cliente</button>
+
+  <!-- Formulario para agregar/editar cliente (inicialmente oculto) -->
+  <div id="formularioCliente" style="display: none;">
+    <h2>Agregar/Editar Cliente</h2>
+    <form id="clienteForm" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="cliente_id" id="clienteId" value="">
+      <div class="form-group">
+        <label for="nombre">Nombre:</label>
+        <input type="text" class="form-control" id="nombre" name="nombre">
+      </div>
+      <div class="form-group">
+        <label for="apellido">Apellido:</label>
+        <input type="text" class="form-control" id="apellido" name="apellido">
+      </div>
+      <div class="form-group">
+        <label for="dni">DNI:</label>
+        <input type="text" class="form-control" id="dni" name="dni">
+      </div>
+      <div class="form-group">
+        <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
+        <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento">
+      </div>
+      <div class="form-group">
+        <label for="tipo_cliente">Tipo de Cliente:</label>
+        <select class="form-control" id="tipo_cliente" name="tipo_cliente">
+          <option value="inquilino">Inquilino</option>
+          <option value="propietario">Propietario</option>
+        </select>
+      </div>
+      <!-- Datos del garante (visible solo si se elige "inquilino") -->
+      <div id="garanteDatos" style="display: none;">
+        <h3>Datos del Garante</h3>
+        <div class="form-group">
+          <label for="garante_nombre">Nombre del Garante:</label>
+          <input type="text" class="form-control" id="garante_nombre" name="garante_nombre">
+        </div>
+        <div class="form-group">
+          <label for="garante_apellido">Apellido del Garante:</label>
+          <input type="text" class="form-control" id="garante_apellido" name="garante_apellido">
+        </div>
+        <div class="form-group">
+          <label for="garante_dni">DNI del Garante:</label>
+          <input type="text" class="form-control" id="garante_dni" name="garante_dni">
+        </div>
+      </div>
+      <!-- Botones para guardar o cancelar el formulario -->
+      <button type="button" class="btn btn-success" onclick="guardarCliente()">Guardar</button>
+      <button type="button" class="btn btn-danger" onclick="cancelarFormulario()">Cancelar</button>
+    </form>
+  </div>
+
+  <!-- Alerta de eliminación (inicialmente oculta) -->
+  <div id="alertaEliminar" style="display: none;">
+    <h3>¿Estás seguro de que deseas eliminar este cliente?</h3>
+    <button class="btn btn-danger" onclick="confirmarEliminar()">ELIMINAR</button>
+    <button class="btn btn-light" onclick="cancelarEliminar()">NO</button>
+  </div>
+
+  <!-- Menú flotante para ver la información del cliente (inicialmente oculto) -->
+  <div id="infoCliente" style="display: none; position: absolute; top: 20px; right: 20px; background-color: white; border: 1px solid #ccc; padding: 10px;">
+    <h2>Información del Cliente</h2>
+    <p><strong>ID:</strong> <span id="infoId"></span></p>
+    <p><strong>Nombre:</strong> <span id="infoNombre"></span></p>
+    <p><strong>Apellido:</strong> <span id="infoApellido"></span></p>
+    <p><strong>DNI:</strong> <span id="infoDni"></span></p>
+    <p><strong>Fecha de Nacimiento:</strong> <span id="infoFechaNacimiento"></span></p>
+    <p><strong>Tipo de Cliente:</strong> <span id="infoTipoCliente"></span></p>
+    <p><strong>Nombre del Garante:</strong> <span id="infoGaranteNombre"></span></p>
+    <p><strong>Apellido del Garante:</strong> <span id="infoGaranteApellido"></span></p>
+    <p><strong>DNI del Garante:</strong> <span id="infoGaranteDni"></span></p>
+  </div>
+
+  <div id="messages"></div>
+
+  <script>
+    // Función para mostrar el formulario de cliente
+    function mostrarFormulario() {
+      document.getElementById('formularioCliente').style.display = 'block';
+      // Restablecer campos del formulario
+      document.getElementById('clienteForm').reset();
+      // Ocultar alerta de eliminación
+      document.getElementById('alertaEliminar').style.display = 'none';
+    }
+
+    // Función para ocultar el formulario de cliente
+    function cancelarFormulario() {
+      document.getElementById('formularioCliente').style.display = 'none';
+    }
+
+    // Función para mostrar/ocultar datos del garante según el tipo de cliente
+    function toggleGarante() {
+      const tipoCliente = document.getElementById('tipo_cliente').value;
+      if (tipoCliente === 'inquilino') {
+        document.getElementById('garanteDatos').style.display = 'block';
+      } else {
+        document.getElementById('garanteDatos').style.display = 'none';
+      }
+    }
+
+    // Llamar a toggleGarante cuando cambie la selección de tipo de cliente
+    document.getElementById('tipo_cliente').addEventListener('change', toggleGarante);
+
+    function guardarCliente() {
+      const form = document.getElementById('clienteForm');
+      const formData = new FormData(form);
+      fetch('/clientes/agregar/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          document.getElementById('messages').innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+          form.reset();
+          // Actualizar la lista de clientes si es necesario
+          // Puedes implementar la lógica aquí
+        } else if (data.error) {
+          document.getElementById('messages').innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+        }
+        // Ocultar el formulario después de guardar
+        document.getElementById('formularioCliente').style.display = 'none';
+      })
+      .catch(error => {
+        console.error(error);
+      });
+    }
+
+    function editarCliente(clienteId) {
+      // Implementa la lógica para cargar los datos del cliente y mostrarlos en el formulario
+      // Luego, modifica la URL de acción del formulario para que apunte a la edición del cliente en lugar de agregar uno nuevo
+    }
+
+    function eliminarCliente(clienteId) {
+      // Mostrar la alerta de eliminación
+      document.getElementById('alertaEliminar').style.display = 'block';
+
+      // Al confirmar eliminar, llamar a confirmarEliminar()
+      function confirmarEliminar() {
+        fetch(`/clientes/eliminar/${clienteId}/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+          },
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.message) {
+            document.getElementById('messages').innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+            // Actualizar la lista de clientes si es necesario
+            // Puedes implementar la lógica aquí
+          } else if (data.error) {
+            document.getElementById('messages').innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+          }
+          // Ocultar la alerta después de eliminar
+          document.getElementById('alertaEliminar').style.display = 'none';
+        })
+        .catch(error => {
+          console.error(error);
+        });
+      }
+
+      // Al cancelar eliminar, llamar a cancelarEliminar()
+      function cancelarEliminar() {
+        document.getElementById('alertaEliminar').style.display = 'none';
+      }
+    }
+
+    // Función para ver la información del cliente
+    function verInformacion(clienteId) {
+      // Obtener los datos del cliente mediante una solicitud AJAX (puedes implementarlo)
+      // Luego, mostrar los datos en el menú flotante
+      // Ejemplo:
+      const cliente = obtenerClientePorId(clienteId); // Implementa la función obtenerClientePorId()
+      if (cliente) {
+        document.getElementById('infoId').textContent = cliente.id_cliente;
+        document.getElementById('infoNombre').textContent = cliente.nombre;
+        document.getElementById('infoApellido').textContent = cliente.apellido;
+        document.getElementById('infoDni').textContent = cliente.dni;
+        document.getElementById('infoFechaNacimiento').textContent = cliente.fecha_nacimiento;
+        document.getElementById('infoTipoCliente').textContent = cliente.get_tipo_cliente_display();
+        document.getElementById('infoGaranteNombre').textContent = cliente.garante_nombre || 'N/A';
+        document.getElementById('infoGaranteApellido').textContent = cliente.garante_apellido || 'N/A';
+        document.getElementById('infoGaranteDni').textContent = cliente.garante_dni || 'N/A';
+
+        // Mostrar el menú flotante
+        document.getElementById('infoCliente').style.display = 'block';
+      } else {
+        console.error('Cliente no encontrado');
+      }
+    }
+
+    // Implementa la función obtenerClientePorId() para obtener los datos del cliente por su ID
+
+    // Función para obtener el valor de la cookie CSRFToken
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          // Nombre de la cookie es 'csrftoken'
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  </script>
 {% endblock %}

@@ -69,35 +69,32 @@ def login_entrar(request):
             return redirect("tasks")
         
 
-def lista_clientes(request):
+def clientes(request):
     clientes = Cliente.objects.all()
     return render(request, 'clientes.html', {'clientes': clientes})
 
-def crear_cliente(request):
+def agregar_cliente(request):
     if request.method == 'POST':
         form = ClienteForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('clientes')  # Redirige a la vista lista_clientes
+            return JsonResponse({'message': 'Cliente creado correctamente'})
+        else:
+            return JsonResponse({'error': 'Error en el formulario'}, status=400)
+    return JsonResponse({'error': 'Método no válido'}, status=400)
 
-    # Si no se realizó una solicitud POST o hubo errores en el formulario, renderiza el formulario nuevamente
-    clientes = Cliente.objects.all()
-    return render(request, 'clientes.html', {'clientes': clientes})
-
-def actualizar_cliente(request, cliente_id):
-    cliente = Cliente.objects.get(pk=cliente_id)
+def editar_cliente(request, cliente_id):
+    cliente = get_object_or_404(Cliente, id_cliente=cliente_id)
     if request.method == 'POST':
         form = ClienteForm(request.POST, instance=cliente)
         if form.is_valid():
             form.save()
-            return redirect('clientes')
-    else:
-        form = ClienteForm(instance=cliente)
-    return render(request, 'clientes.html', {'form': form, 'cliente': cliente})
+            return JsonResponse({'message': 'Cliente actualizado correctamente'})
+        else:
+            return JsonResponse({'error': 'Error en el formulario'}, status=400)
+    return JsonResponse({'error': 'Método no válido'}, status=400)
 
 def eliminar_cliente(request, cliente_id):
-    cliente = Cliente.objects.get(pk=cliente_id)
-    if request.method == 'POST':
-        cliente.delete()
-        return redirect('clientes')
-    return render(request, 'clientes.html', {'cliente': cliente})
+    cliente = get_object_or_404(Cliente, id_cliente=cliente_id)
+    cliente.delete()
+    return JsonResponse({'message': 'Cliente eliminado correctamente'})
