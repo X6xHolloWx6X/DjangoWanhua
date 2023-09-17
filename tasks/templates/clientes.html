@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <h2>Lista de Clientes</h2>
-  <table class="table">
+  <h2 style="color: navy;">Lista de Clientes</h2>
+  <table class="table table-dark table-striped">
     <thead>
       <tr>
         <th>ID</th>
@@ -38,7 +38,7 @@
 
   <!-- Formulario para agregar cliente (inicialmente oculto) -->
   <div id="formularioCrearCliente" style="display: none;">
-    <h2>Agregar Cliente</h2>
+    <h2 style="color: navy;">Agregar Cliente</h2>
     <form id="crearClienteForm" method="post">
       {% csrf_token %}
       <div class="form-group">
@@ -60,13 +60,13 @@
       <div class="form-group">
         <label for="tipo_cliente">Tipo de Cliente:</label>
         <select class="form-control" id="tipo_cliente" name="tipo_cliente" onchange="toggleGarante()">
+          <option value="propietario">propietario</option>
           <option value="inquilino">Inquilino</option>
-          <option value="propietario">Propietario</option>
         </select>
       </div>
       <!-- Datos del garante (visible solo si se elige "inquilino") -->
       <div id="garanteDatos" style="display: none;">
-        <h3>Datos del Garante</h3>
+        <h3 style="color: navy;">Datos del Garante</h3>
         <div class="form-group">
           <label for="garante_nombre">Nombre del Garante:</label>
           <input type="text" class="form-control" id="garante_nombre" name="garante_nombre">
@@ -88,7 +88,7 @@
 
   <!-- Formulario para editar cliente (inicialmente oculto) -->
   <div id="formularioEditarCliente" style="display: none;">
-    <h2>Editar Cliente</h2>
+    <h2 style="color: navy;">Editar Cliente</h2>
     <form id="editarClienteForm" method="post">
       {% csrf_token %}
       <input type="hidden" name="cliente_id" id="clienteIdEditar" value="">
@@ -117,7 +117,7 @@
       </div>
       <!-- Datos del garante (visible solo si se elige "inquilino") -->
       <div id="garanteDatosEditar" style="display: none;">
-        <h3>Datos del Garante</h3>
+        <h3 style="color: navy;">Datos del Garante</h3>
         <div class="form-group">
           <label for="garante_nombreEditar">Nombre del Garante:</label>
           <input type="text" class="form-control" id="garante_nombreEditar" name="garante_nombre">
@@ -139,7 +139,7 @@
 
   <!-- Alerta de eliminación (inicialmente oculta) -->
   <div id="alertaEliminar" style="display: none;">
-    <h3>¿Estás seguro de que deseas eliminar este cliente?</h3>
+    <h3 style="color: navy;">¿Estás seguro de que deseas eliminar este cliente?</h3>
     <button class="btn btn-danger" onclick="eliminarCliente()">ELIMINAR</button>
     <button class="btn btn-light" onclick="cancelarEliminar()">NO</button>
   </div>
@@ -147,7 +147,7 @@
   <!-- Agrega un contenedor div para el menú flotante -->
  <div id="menuFlotante" style="display: none; position: fixed; top: 20px; right: 20px; background-color: white; border: 1px solid #ccc; padding: 10px; max-width: 300px;">
     <button style="position: absolute; top: 5px; right: 5px; background-color: lightgreen; border: none; color: white; padding: 5px 10px; cursor: pointer;" onclick="cerrarMenuFlotante()">X</button>
-    <h2>Información del Cliente</h2>
+    <h2 style="color: navy;">Información del Cliente</h2>
     <p><strong>ID:</strong> <span id="infoId"></span></p>
     <p><strong>Nombre:</strong> <span id="infoNombre"></span></p>
     <p><strong>Apellido:</strong> <span id="infoApellido"></span></p>

@@ -17,7 +17,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='cliente',
             name='fecha_nacimiento',
-            field=models.DateField(default='exit'),
+            field=models.DateField(null=True, blank=True, default='2023-09-17')
+,
             preserve_default=False,
         ),
     ]

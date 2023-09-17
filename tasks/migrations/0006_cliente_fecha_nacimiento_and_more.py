@@ -13,13 +13,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='cliente',
             name='fecha_nacimiento',
-            field=models.DateField(default='NULL'),
+            field=models.DateField(null=True, blank=True, default='2023-09-17'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='cliente',
             name='garante_fecha_nacimiento',
-            field=models.DateField(default='NULL'),
+            field=models.DateField(null=True, blank=True, default='2023-09-17'),
             preserve_default=False,
         ),
     ]
