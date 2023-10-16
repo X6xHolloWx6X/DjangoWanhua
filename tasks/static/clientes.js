@@ -24,185 +24,33 @@ function mostrarFormulario(accion) {
   clienteIdEliminar = null;
 }
 
-// Función para ocultar el formulario de cliente
-function cancelarFormulario(accion) {
-  if (accion === 'crear') {
-    document.getElementById('formularioCrearCliente').style.display = 'none';
-  } else if (accion === 'editar') {
-    document.getElementById('formularioEditarCliente').style.display = 'none';
-  }
-
-  clienteIdEditar = null;
-  clienteIdEliminar = null;
-}
-
-// Función para mostrar/ocultar datos del garante según el tipo de cliente
-function toggleGarante() {
-  const tipoCliente = document.getElementById('tipo_cliente').value;
-  if (tipoCliente === 'inquilino') {
-    document.getElementById('garanteDatos').style.display = 'block';
-  } else {
-    document.getElementById('garanteDatos').style.display = 'none';
-  }
-}
-
-// Función para mostrar/ocultar datos del garante en el formulario de edición según el tipo de cliente
-function toggleGaranteEditar() {
-  const tipoCliente = document.getElementById('tipo_clienteEditar').value;
-  if (tipoCliente === 'inquilino') {
-    document.getElementById('garanteDatosEditar').style.display = 'block';
-  } else {
-    document.getElementById('garanteDatosEditar').style.display = 'none';
-  }
-}
-
-// Llamar a toggleGarante cuando cambie la selección de tipo de cliente
-document.getElementById('tipo_cliente').addEventListener('change', toggleGarante);
-document.getElementById('tipo_clienteEditar').addEventListener('change', toggleGaranteEditar);
-
-// Restablecer campos del formulario de edición cuando se cancela la edición
-document.getElementById('formularioEditarCliente').addEventListener('reset', () => {
-  clienteIdEditar = null;
-});
-
-function guardarCliente(accion) {
-  const form = accion === 'crear' ? document.getElementById('crearClienteForm') : document.getElementById('editarClienteForm');
-  const formData = new FormData(form);
-  fetch(accion === 'crear' ? '/clientes/agregar/' : `/clientes/editar/${clienteIdEditar}/`, {
-    method: 'POST',
-    body: formData,
-    headers: {
-      'X-CSRFToken': getCookie('csrftoken'),
-    },
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.message) {
-      document.getElementById('messages').innerHTML = `<div class="alert alert-success">${data.message}</div>`;
-      form.reset();
-      // Actualizar la lista de clientes si es necesario
-      // Puedes implementar la lógica aquí
-    } else if (data.error) {
-      document.getElementById('messages').innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
-    }
-    // Ocultar el formulario después de guardar
-    if (accion === 'crear') {
-      document.getElementById('formularioCrearCliente').style.display = 'none';
-    } else if (accion === 'editar') {
-      document.getElementById('formularioEditarCliente').style.display = 'none';
-    }
-    clienteIdEditar = null;
-  })
-  .catch(error => {
-    console.error(error);
-  });
-}
-
+// Función para iniciar edición de un cliente
 function editarCliente(clienteId) {
-  if (clienteIdEliminar) {
-    // Evitar editar si hay una eliminación en curso
-    return;
-  }
-  const url = `/clientes/editar/${clienteId}/`;
-  fetch(url)
-    .then(response => response.json())
-    .then(data => {
-      // Llenar el formulario de edición con los datos del cliente
-      document.getElementById('clienteIdEditar').value = data.id_cliente;
-      document.getElementById('nombreEditar').value = data.nombre;
-      document.getElementById('apellidoEditar').value = data.apellido;
-      document.getElementById('dniEditar').value = data.dni;
-      document.getElementById('fecha_nacimientoEditar').value = data.fecha_nacimiento;
-      document.getElementById('tipo_clienteEditar').value = data.tipo_cliente;
+  // Aquí puedes realizar una petición AJAX para obtener la información del cliente usando el `clienteId`
+  // Después de obtener los datos del cliente, puedes llenar los campos del formulario de edición y mostrar el formulario:
+  // ejemplo:
+  // document.getElementById('campoDelFormulario').value = datosDelCliente.campo;
+  
+  // Por ahora simplemente mostraremos el formulario de edición:
+  mostrarFormulario('editar');
 
-      // Mostrar el formulario de edición
-      document.getElementById('formularioEditarCliente').style.display = 'block';
-
-      // Mostrar u ocultar datos del garante en el formulario de edición según el tipo de cliente
-      toggleGaranteEditar();
-      clienteIdEditar = clienteId;
-    })
-    .catch(error => {
-      console.error(error);
-    });
+  // Guardar el clienteId en la variable global para saber cuál cliente estamos editando
+  clienteIdEditar = clienteId;
 }
 
-function mostrarConfirmacion(clienteId) {
-  if (clienteIdEditar) {
-    // Evitar eliminación si hay una edición en curso
-    return;
-  }
-  // Mostrar alerta de eliminación
-  document.getElementById('alertaEliminar').style.display = 'block';
-  clienteIdEliminar = clienteId;
-}
+// Función para iniciar la eliminación de un cliente
+function eliminarCliente(clienteId) {
+  // Mostrar una alerta de confirmación antes de eliminar
+  const confirmacion = confirm("¿Estás seguro de que quieres eliminar este cliente?");
+  if (confirmacion) {
+    // Aquí puedes realizar una petición AJAX para eliminar el cliente usando el `clienteId`
+    // Después de eliminar el cliente puedes actualizar la lista/tabla de clientes o mostrar una notificación
 
-function cancelarEliminar() {
-  // Ocultar alerta de eliminación
-  document.getElementById('alertaEliminar').style.display = 'none';
-  clienteIdEliminar = null;
-}
-
-function eliminarCliente() {
-  if (clienteIdEliminar) {
-    fetch(`/clientes/eliminar/${clienteIdEliminar}/`, {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': getCookie('csrftoken'),
-        'Content-Type': 'application/json',
-      },
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.message) {
-        document.getElementById('messages').innerHTML = `<div class="alert alert-success">${data.message}</div>`;
-        // Actualizar la lista de clientes si es necesario
-        // Puedes implementar la lógica aquí
-      } else if (data.error) {
-        document.getElementById('messages').innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
-      }
-      // Ocultar alerta de eliminación
-      document.getElementById('alertaEliminar').style.display = 'none';
-      clienteIdEliminar = null;
-    })
-    .catch(error => {
-      console.error(error);
-    });
+    // Por ahora simplemente mostraremos un mensaje en la consola:
+    console.log("Cliente eliminado:", clienteId);
   }
 }
 
-// Función para ver la información del cliente
-function verInformacion(clienteId) {
-// Realizar una solicitud para obtener los datos del cliente por su ID
-fetch(`/clientes/obtener/${clienteId}/`)
-.then(response => response.json())
-.then(data => {
-  if (data.cliente) {
-    const cliente = data.cliente;
-    // Llenar los campos del menú flotante con los datos del cliente
-    document.getElementById('infoId').textContent = cliente.id_cliente;
-    document.getElementById('infoNombre').textContent = cliente.nombre;
-    document.getElementById('infoApellido').textContent = cliente.apellido;
-    document.getElementById('infoDni').textContent = cliente.dni;
-    document.getElementById('infoFechaNacimiento').textContent = cliente.fecha_nacimiento;
-    document.getElementById('infoTipoCliente').textContent = cliente.tipo_cliente;
-    document.getElementById('infoGaranteNombre').textContent = cliente.garante_nombre || '-';
-    document.getElementById('infoGaranteApellido').textContent = cliente.garante_apellido || '-';
-    document.getElementById('infoGaranteDni').textContent = cliente.garante_dni || '-';
-    // Mostrar el menú flotante
-    document.getElementById('menuFlotante').style.display = 'block';
-  } else {
-    console.error('Cliente no encontrado');
-  }
-});
-}
-// Función para cerrar el menú flotante
-function cerrarMenuFlotante() {
-// Ocultar el menú flotante
-document.getElementById('menuFlotante').style.display = 'none';
-}
-
-// Función para obtener el valor de la cookie CSRFToken
 function getCookie(name) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
@@ -217,4 +65,39 @@ function getCookie(name) {
     }
   }
   return cookieValue;
+}
+
+// Función para enviar el formulario de creación o edición de cliente
+function enviarFormulario(accion) {
+  // Obtener el token CSRF para la petición AJAX
+  const csrfToken = getCookie('csrftoken');
+
+  let url = "/ruta/api/crear-cliente/";  // Cambia esta URL a la adecuada para tu API de Django
+  let metodo = "POST";
+  let formularioId = "crearClienteForm";
+
+  if (accion === 'editar') {
+    url = "/ruta/api/editar-cliente/" + clienteIdEditar + "/";  // Cambia esta URL a la adecuada y agrega el ID del cliente
+    metodo = "PUT";
+    formularioId = "editarClienteForm";
+  }
+
+  const datosFormulario = new FormData(document.getElementById(formularioId));
+
+  fetch(url, {
+    method: metodo,
+    headers: {
+      'X-CSRFToken': csrfToken
+    },
+    body: datosFormulario
+  })
+  .then(response => response.json())
+  .then(data => {
+    // Aquí puedes procesar la respuesta de tu API, como mostrar una notificación o actualizar la lista/tabla de clientes
+
+    console.log("Respuesta de la API:", data);
+  })
+  .catch(error => {
+    console.error("Error al enviar el formulario:", error);
+  });
 }

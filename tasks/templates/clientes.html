@@ -35,57 +35,64 @@
   </table>
 
   <!-- Botón para agregar cliente -->
-  <button class="btn btn-success" onclick="mostrarFormulario('crear')">Agregar Cliente</button>
+  <button onclick="mostrarFormulario('crear')">Crear nuevo cliente</button>
 
-  <!-- Formulario para agregar cliente (inicialmente oculto) -->
-  <div id="formularioCrearCliente" style="display: none;">
-    <h2 style="color: navy;">Agregar Cliente</h2>
-    <form id="crearClienteForm" method="post">
+<!-- Formulario para crear un nuevo cliente -->
+<div id="formularioCrearCliente" style="display:none;">
+  <h2>Crear cliente</h2>
+  <form method="post" action="{% url 'agregar_cliente' %}">
       {% csrf_token %}
-      <div class="form-group">
-        <label for="nombre">Nombre:</label>
-        <input type="text" class="form-control" id="nombre" name="nombre">
-      </div>
-      <div class="form-group">
-        <label for="apellido">Apellido:</label>
-        <input type="text" class="form-control" id="apellido" name="apellido">
-      </div>
-      <div class="form-group">
-        <label for="dni">DNI:</label>
-        <input type="text" class="form-control" id="dni" name="dni">
-      </div>
-      <div class="form-group">
-        <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
-        <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento">
-      </div>
-      <div class="form-group">
-        <label for="tipo_cliente">Tipo de Cliente:</label>
-        <select class="form-control" id="tipo_cliente" name="tipo_cliente" onchange="toggleGarante()">
-          <option value="propietario">propietario</option>
+
+      <label for="dni">DNI:</label>
+      <input type="text" id="dni" name="dni" maxlength="8" required><br><br>
+
+      <label for="nombre_cliente">Nombre:</label>
+      <input type="text" id="nombre_cliente" name="nombre_cliente" maxlength="255" required><br><br>
+
+      <label for="tel_cliente">Teléfono:</label>
+      <input type="text" id="tel_cliente" name="tel_cliente" maxlength="15" required><br><br>
+
+      <label for="email_cliente">Email:</label>
+      <input type="email" id="email_cliente" name="email_cliente"><br><br>
+
+      <label for="direccion_cliente">Dirección:</label>
+      <textarea id="direccion_cliente" name="direccion_cliente" rows="4"></textarea><br><br>
+
+      <label for="tipo_cliente">Tipo de Cliente:</label>
+      <select id="tipo_cliente" name="tipo_cliente" onchange="toggleGarante()">
+          <option value="propietario">Propietario</option>
           <option value="inquilino">Inquilino</option>
-        </select>
-      </div>
-      <!-- Datos del garante (visible solo si se elige "inquilino") -->
-      <div id="garanteDatos" style="display: none;">
-        <h3 style="color: navy;">Datos del Garante</h3>
-        <div class="form-group">
-          <label for="garante_nombre">Nombre del Garante:</label>
-          <input type="text" class="form-control" id="garante_nombre" name="garante_nombre">
+      </select><br><br>
+
+      <input type="submit" value="Agregar Cliente">
+  </form>
+</div>
+        <!-- Datos del Garante - Se mostrarán si el cliente es un inquilino -->
+        <div id="garanteDatos" style="display:none;">
+            <h3>Datos del Garante</h3>
+            <label for="nombre_garante">Nombre del Garante:</label>
+            <input type="text" id="nombre_garante" name="nombre_garante">
+
+            <label for="apellido_garante">Apellido del Garante:</label>
+            <input type="text" id="apellido_garante" name="apellido_garante">
+
+            <label for="dni_garante">DNI del Garante:</label>
+            <input type="text" id="dni_garante" name="dni_garante">
+
+            <label for="fecha_nacimiento_garante">Fecha de Nacimiento del Garante:</label>
+            <input type="date" id="fecha_nacimiento_garante" name="fecha_nacimiento_garante">
+
+            <label for="direccion_garante">Dirección del Garante:</label>
+            <input type="text" id="direccion_garante" name="direccion_garante">
+
+            <label for="telefono_garante">Teléfono del Garante:</label>
+            <input type="tel" id="telefono_garante" name="telefono_garante">
         </div>
-        <div class="form-group">
-          <label for="garante_apellido">Apellido del Garante:</label>
-          <input type="text" class="form-control" id="garante_apellido" name="garante_apellido">
-        </div>
-        <div class="form-group">
-          <label for="garante_dni">DNI del Garante:</label>
-          <input type="text" class="form-control" id="garante_dni" name="garante_dni">
-        </div>
-      </div>
-      <!-- Botones para guardar o cancelar el formulario -->
-      <button type="button" class="btn btn-success" onclick="guardarCliente('crear')">Guardar</button>
-      <button type="button" class="btn btn-danger" onclick="cancelarFormulario('crear')">Cancelar</button>
+
+        <button type="submit">Guardar</button>
+        <button type="button" onclick="cancelarFormulario('crear')">Cancelar</button>
     </form>
-  </div>
+</div>
 
   <!-- Formulario para editar cliente (inicialmente oculto) -->
   <div id="formularioEditarCliente" style="display: none;">

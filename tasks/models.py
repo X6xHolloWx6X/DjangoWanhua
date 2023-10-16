@@ -1,28 +1,29 @@
 from django.db import models
 
-class Cliente(models.Model):
-    TIPOS_CLIENTE = (
-        ('inquilino', 'Inquilino'),
-        ('propietario', 'Propietario'),
-    )
+class TpoCliente(models.Model):
+    id_tpo_cliente = models.AutoField(primary_key=True)  # Removido null=True
+    descripcion = models.CharField(max_length=255, null=False, blank=False)
 
-    id_cliente = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=100)
-    apellido = models.CharField(max_length=100)
-    dni = models.CharField(max_length=20)
-    tipo_cliente = models.CharField(max_length=20, choices=TIPOS_CLIENTE)
+    def __str__(self):
+        return self.descripcion
 
-    # Permitir fecha de nacimiento nula
-    fecha_nacimiento = models.DateField(null="YYYY-MM-DD", blank=True)
-
-    # Si el cliente es un inquilino, se requieren detalles del garante
-    garante_nombre = models.CharField(max_length=100, blank=True, null=True)
-    garante_apellido = models.CharField(max_length=100, blank=True, null=True)
-    garante_dni = models.CharField(max_length=20, blank=True, null=True)
-
-    # Agregar campos de dirección para inquilino y garantes
-    direccion_inquilino = models.CharField(max_length=255, blank=True, null=True)
-    direccion_garante = models.CharField(max_length=255, blank=True, null=True)
+class Garante(models.Model):
+    dni_garante = models.CharField(max_length=8, primary_key=True, null=False)
+    nombre = models.CharField(max_length=255, null=True, blank=True)
+    apellido = models.CharField(max_length=255, null=True, blank=True)
+    direccion = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.nombre} {self.apellido}"
+
+class Cliente(models.Model):
+    dni = models.CharField(max_length=8, primary_key=True, null=False)
+    nombre_cliente = models.CharField(max_length=255, null=True, blank=False)
+    tel_cliente = models.CharField(max_length=15, null=True, blank=False)
+    email_cliente = models.EmailField(null=True, blank=True)  # Cambiado blank a True
+    direccion_cliente = models.TextField(null=True, blank=True)  # Cambiado blank a True
+    id_tpo_cliente = models.ForeignKey(TpoCliente, on_delete=models.CASCADE, default=1)
+    dni_garante = models.ForeignKey(Garante, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return self.nombre_cliente

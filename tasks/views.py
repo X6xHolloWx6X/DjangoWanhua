@@ -4,8 +4,8 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponse, JsonResponse
-from .models import Cliente
-from .forms import ClienteForm
+from .models import Cliente, TpoCliente, Garante
+from .forms import ClienteForm, TpoClienteForm
 def home(request):
     return render(request, "home.html")
 
@@ -83,8 +83,8 @@ def agregar_cliente(request):
             return JsonResponse({'error': 'Error en el formulario'}, status=400)
     return JsonResponse({'error': 'Método no válido'}, status=400)
 
-def editar_cliente(request, cliente_id):
-    cliente = get_object_or_404(Cliente, id_cliente=cliente_id)
+def editar_cliente(request, cliente_dni):
+    cliente = get_object_or_404(Cliente, dni=cliente_dni)
     if request.method == 'POST':
         form = ClienteForm(request.POST, instance=cliente)
         if form.is_valid():
@@ -94,23 +94,38 @@ def editar_cliente(request, cliente_id):
             return JsonResponse({'error': 'Error en el formulario'}, status=400)
     return JsonResponse({'error': 'Método no válido'}, status=400)
 
-def eliminar_cliente(request, cliente_id):
+def eliminar_cliente(request, cliente_dni):
     try:
-        cliente = Cliente.objects.get(pk=cliente_id)
+        cliente = Cliente.objects.get(dni=cliente_dni)
         cliente.delete()
         return JsonResponse({'message': 'Cliente eliminado correctamente'})
     except Cliente.DoesNotExist:
         return JsonResponse({'error': 'Cliente no encontrado'}, status=404)
     
-def obtener_cliente(request, cliente_id):
-    cliente = get_object_or_404(Cliente, id_cliente=cliente_id)
+def obtener_cliente(request, cliente_dni):
+    cliente = get_object_or_404(Cliente, dni=cliente_dni)
     data = {
-        'id_cliente': cliente.id_cliente,
-        'nombre': cliente.nombre,
-        'apellido': cliente.apellido,
         'dni': cliente.dni,
-        'fecha_nacimiento': cliente.fecha_nacimiento,
-        'tipo_cliente': cliente.tipo_cliente,
+        'nombre_cliente': cliente.nombre_cliente,
+        'tel_cliente': cliente.tel_cliente,
+        'email_cliente': cliente.email_cliente,
+        'direccion_cliente': cliente.direccion_cliente,
+        'id_tpo_cliente': cliente.id_tpo_cliente.id_tpo_cliente,
+        'descripcion_tpo_cliente': cliente.id_tpo_cliente.descripcion,
+        'dni_garante': cliente.dni_garante.dni_garante if cliente.dni_garante else None,
         # Otros campos si es necesario
     }
     return JsonResponse({'cliente': data})
+def tpo_clientes(request):
+    tipos = TpoCliente.objects.all()
+    return render(request, 'tpo_clientes.html', {'tipos': tipos})
+
+def agregar_tpo_cliente(request):
+    if request.method == 'POST':
+        form = TpoClienteForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'message': 'Tipo de cliente creado correctamente'})
+        else:
+            return JsonResponse({'error': 'Error en el formulario'}, status=400)
+    return JsonResponse({'error': 'Método no válido'}, status=400)
