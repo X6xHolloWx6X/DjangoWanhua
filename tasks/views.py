@@ -4,8 +4,10 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponse, JsonResponse
-from .models import Cliente, TpoCliente, Garante
-from .forms import ClienteForm, TpoClienteForm
+from .models import Cliente
+from .forms import ClienteForm
+
+
 def home(request):
     return render(request, "home.html")
 
@@ -69,63 +71,42 @@ def login_entrar(request):
             return redirect("tasks")
         
 
-def clientes(request):
+def lista_clientes(request):
     clientes = Cliente.objects.all()
     return render(request, 'clientes.html', {'clientes': clientes})
 
-def agregar_cliente(request):
-    if request.method == 'POST':
+# Detalles de cliente
+def detalle_cliente(request, dni):
+    cliente = get_object_or_404(Cliente, dni=dni)
+    return render(request, 'detalle_cliente.html', {'cliente': cliente})
+
+# Crear cliente
+def crear_cliente(request):
+    if request.method == "POST":
         form = ClienteForm(request.POST)
         if form.is_valid():
             form.save()
-            return JsonResponse({'message': 'Cliente creado correctamente'})
-        else:
-            return JsonResponse({'error': 'Error en el formulario'}, status=400)
-    return JsonResponse({'error': 'Método no válido'}, status=400)
+            return redirect('clientes')
+    else:
+        form = ClienteForm()
+    return render(request, 'crear_cliente.html', {'form': form})
 
-def editar_cliente(request, cliente_dni):
-    cliente = get_object_or_404(Cliente, dni=cliente_dni)
-    if request.method == 'POST':
+# Actualizar cliente
+def editar_cliente(request, dni):
+    cliente = get_object_or_404(Cliente, dni=dni)
+    if request.method == "POST":
         form = ClienteForm(request.POST, instance=cliente)
         if form.is_valid():
             form.save()
-            return JsonResponse({'message': 'Cliente actualizado correctamente'})
-        else:
-            return JsonResponse({'error': 'Error en el formulario'}, status=400)
-    return JsonResponse({'error': 'Método no válido'}, status=400)
+            return redirect('detalle_cliente', dni=cliente.dni)
+    else:
+        form = ClienteForm(instance=cliente)
+    return render(request, 'editar_cliente.html', {'form': form})
 
-def eliminar_cliente(request, cliente_dni):
-    try:
-        cliente = Cliente.objects.get(dni=cliente_dni)
+# Eliminar cliente
+def eliminar_cliente(request, dni):
+    cliente = get_object_or_404(Cliente, dni=dni)
+    if request.method == "POST":
         cliente.delete()
-        return JsonResponse({'message': 'Cliente eliminado correctamente'})
-    except Cliente.DoesNotExist:
-        return JsonResponse({'error': 'Cliente no encontrado'}, status=404)
-    
-def obtener_cliente(request, cliente_dni):
-    cliente = get_object_or_404(Cliente, dni=cliente_dni)
-    data = {
-        'dni': cliente.dni,
-        'nombre_cliente': cliente.nombre_cliente,
-        'tel_cliente': cliente.tel_cliente,
-        'email_cliente': cliente.email_cliente,
-        'direccion_cliente': cliente.direccion_cliente,
-        'id_tpo_cliente': cliente.id_tpo_cliente.id_tpo_cliente,
-        'descripcion_tpo_cliente': cliente.id_tpo_cliente.descripcion,
-        'dni_garante': cliente.dni_garante.dni_garante if cliente.dni_garante else None,
-        # Otros campos si es necesario
-    }
-    return JsonResponse({'cliente': data})
-def tpo_clientes(request):
-    tipos = TpoCliente.objects.all()
-    return render(request, 'tpo_clientes.html', {'tipos': tipos})
-
-def agregar_tpo_cliente(request):
-    if request.method == 'POST':
-        form = TpoClienteForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return JsonResponse({'message': 'Tipo de cliente creado correctamente'})
-        else:
-            return JsonResponse({'error': 'Error en el formulario'}, status=400)
-    return JsonResponse({'error': 'Método no válido'}, status=400)
+        return redirect('lista_clientes')
+    return render(request, 'eliminar_cliente.html', {'cliente': cliente})

@@ -9,9 +9,10 @@ urlpatterns = [
     path("tasks/", views.tasks, name="tasks"),
     path("salir/", views.cerrar_sesion, name="cerrar_sesion"),
     path("login/", views.login_entrar, name="entrar_sesion"),
-    path('clientes/', views.clientes, name='clientes'),
-    path('clientes/agregar/', views.agregar_cliente, name='agregar_cliente'),
-    path('clientes/editar/<int:cliente_id>/', views.editar_cliente, name='editar_cliente'),
-    path('clientes/eliminar/<int:cliente_id>/', views.eliminar_cliente, name='eliminar_cliente'),
-    path('clientes/obtener/<int:cliente_id>/', views.obtener_cliente, name='obtener_cliente'),
+    path('clientes/', views.lista_clientes, name='lista_clientes'),
+    path('cliente/<str:dni>/', views.detalle_cliente, name='detalle_cliente'),
+    path('cliente/nuevo/', views.crear_cliente, name='crear_cliente'),      
+    path('cliente/editar/<str:dni>/', views.editar_cliente, name='editar_cliente'),
+    path('cliente/eliminar/<str:dni>/', views.eliminar_cliente, name='eliminar_cliente'),
+
 ]

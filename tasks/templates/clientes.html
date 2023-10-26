@@ -1,173 +1,143 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
+
 {% block content %}
-<script src="{% static '../static/clientes.js' %}"></script>
-  <h2 style="color: navy;">Lista de Clientes</h2>
-  <table class="table table-dark table-striped">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Nombre</th>
-        <th>Apellido</th>
-        <th>DNI</th>
-        <th>Fecha de Nacimiento</th>
-        <th>Tipo de Cliente</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for cliente in clientes %}
-        <tr>
-          <td>{{ cliente.id_cliente }}</td>
-          <td>{{ cliente.nombre }}</td>
-          <td>{{ cliente.apellido }}</td>
-          <td>{{ cliente.dni }}</td>
-          <td>{{ cliente.fecha_nacimiento }}</td>
-          <td>{{ cliente.get_tipo_cliente_display }}</td>
-          <td>
-            <button class="btn btn-primary" onclick="editarCliente('{{ cliente.id_cliente }}')">Editar</button>
-            <button class="btn btn-danger" onclick="mostrarConfirmacion('{{ cliente.id_cliente }}')">Eliminar</button>
-            <button class="btn btn-info" onclick="verInformacion('{{ cliente.id_cliente }}')">Ver Información</button>
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="{% static '../static/clientes.js' %}"></script>
+</head>
 
-  <!-- Botón para agregar cliente -->
-  <button onclick="mostrarFormulario('crear')">Crear nuevo cliente</button>
+<body>
 
-<!-- Formulario para crear un nuevo cliente -->
-<div id="formularioCrearCliente" style="display:none;">
-  <h2>Crear cliente</h2>
-  <form method="post" action="{% url 'agregar_cliente' %}">
-      {% csrf_token %}
-
-      <label for="dni">DNI:</label>
-      <input type="text" id="dni" name="dni" maxlength="8" required><br><br>
-
-      <label for="nombre_cliente">Nombre:</label>
-      <input type="text" id="nombre_cliente" name="nombre_cliente" maxlength="255" required><br><br>
-
-      <label for="tel_cliente">Teléfono:</label>
-      <input type="text" id="tel_cliente" name="tel_cliente" maxlength="15" required><br><br>
-
-      <label for="email_cliente">Email:</label>
-      <input type="email" id="email_cliente" name="email_cliente"><br><br>
-
-      <label for="direccion_cliente">Dirección:</label>
-      <textarea id="direccion_cliente" name="direccion_cliente" rows="4"></textarea><br><br>
-
-      <label for="tipo_cliente">Tipo de Cliente:</label>
-      <select id="tipo_cliente" name="tipo_cliente" onchange="toggleGarante()">
-          <option value="propietario">Propietario</option>
-          <option value="inquilino">Inquilino</option>
-      </select><br><br>
-
-      <input type="submit" value="Agregar Cliente">
-  </form>
-</div>
-        <!-- Datos del Garante - Se mostrarán si el cliente es un inquilino -->
-        <div id="garanteDatos" style="display:none;">
-            <h3>Datos del Garante</h3>
-            <label for="nombre_garante">Nombre del Garante:</label>
-            <input type="text" id="nombre_garante" name="nombre_garante">
-
-            <label for="apellido_garante">Apellido del Garante:</label>
-            <input type="text" id="apellido_garante" name="apellido_garante">
-
-            <label for="dni_garante">DNI del Garante:</label>
-            <input type="text" id="dni_garante" name="dni_garante">
-
-            <label for="fecha_nacimiento_garante">Fecha de Nacimiento del Garante:</label>
-            <input type="date" id="fecha_nacimiento_garante" name="fecha_nacimiento_garante">
-
-            <label for="direccion_garante">Dirección del Garante:</label>
-            <input type="text" id="direccion_garante" name="direccion_garante">
-
-            <label for="telefono_garante">Teléfono del Garante:</label>
-            <input type="tel" id="telefono_garante" name="telefono_garante">
-        </div>
-
-        <button type="submit">Guardar</button>
-        <button type="button" onclick="cancelarFormulario('crear')">Cancelar</button>
-    </form>
+<div class="container mt-5">
+    <!-- Listar clientes -->
+    <h2 class="mb-3">Lista de Clientes</h2>
+    <a href="#crearClienteModal" data-toggle="modal" class="btn btn-primary mb-3">Nuevo Cliente</a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>DNI</th>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Dirección</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cliente in clientes %}
+                <tr>
+                    <td>{{ cliente.dni }}</td>
+                    <td>{{ cliente.nombre_cliente }}</td>
+                    <td>{{ cliente.tel_cliente }}</td>
+                    <td>{{ cliente.email_cliente }}</td>
+                    <td>{{ cliente.direccion_cliente }}</td>
+                    <td>
+                        <a href="#editarClienteModal" data-toggle="modal" class="btn btn-warning" onclick="setEditarModalValues('{{ cliente.dni }}', '{{ cliente.nombre_cliente }}', '{{ cliente.tel_cliente }}', '{{ cliente.email_cliente }}', '{{ cliente.direccion_cliente }}')">Editar</a>
+                        <a href="#eliminarClienteModal" data-toggle="modal" class="btn btn-danger" onclick="setEliminarModalValue('{{ cliente.dni }}')">Eliminar</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 
-  <!-- Formulario para editar cliente (inicialmente oculto) -->
-  <div id="formularioEditarCliente" style="display: none;">
-    <h2 style="color: navy;">Editar Cliente</h2>
-    <form id="editarClienteForm" method="post">
-      {% csrf_token %}
-      <input type="hidden" name="cliente_id" id="clienteIdEditar" value="">
-      <div class="form-group">
-        <label for="nombreEditar">Nombre:</label>
-        <input type="text" class="form-control" id="nombreEditar" name="nombre">
-      </div>
-      <div class="form-group">
-        <label for="apellidoEditar">Apellido:</label>
-        <input type="text" class="form-control" id="apellidoEditar" name="apellido">
-      </div>
-      <div class="form-group">
-        <label for="dniEditar">DNI:</label>
-        <input type="text" class="form-control" id="dniEditar" name="dni">
-      </div>
-      <div class="form-group">
-        <label for="fecha_nacimientoEditar">Fecha de Nacimiento:</label>
-        <input type="date" class="form-control" id="fecha_nacimientoEditar" name="fecha_nacimiento">
-      </div>
-      <div class="form-group">
-        <label for="tipo_clienteEditar">Tipo de Cliente:</label>
-        <select class="form-control" id="tipo_clienteEditar" name="tipo_cliente" onchange="toggleGaranteEditar()">
-          <option value="inquilino">Inquilino</option>
-          <option value="propietario">Propietario</option>
-        </select>
-      </div>
-      <!-- Datos del garante (visible solo si se elige "inquilino") -->
-      <div id="garanteDatosEditar" style="display: none;">
-        <h3 style="color: navy;">Datos del Garante</h3>
-        <div class="form-group">
-          <label for="garante_nombreEditar">Nombre del Garante:</label>
-          <input type="text" class="form-control" id="garante_nombreEditar" name="garante_nombre">
+<!-- Crear cliente modal -->
+<div class="modal" id="crearClienteModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Crear Cliente</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{% url 'crear_cliente' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="dni">DNI:</label>
+                        <input type="number" class="form-control" name="dni" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nombre_cliente">Nombre:</label>
+                        <input type="text" class="form-control" name="nombre_cliente" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tel_cliente">Teléfono:</label>
+                        <input type="tel" class="form-control" name="tel_cliente" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email_cliente">Email:</label>
+                        <input type="email" class="form-control" name="email_cliente" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="direccion_cliente">Dirección:</label>
+                        <input type="text" class="form-control" name="direccion_cliente" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </form>
+            </div>
         </div>
-        <div class="form-group">
-          <label for="garante_apellidoEditar">Apellido del Garante:</label>
-          <input type="text" class="form-control" id="garante_apellidoEditar" name="garante_apellido">
+    </div>
+</div>
+<!-- Editar cliente modal -->
+<div class="modal" id="editarClienteModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Editar Cliente</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="editarForm">
+                    {% csrf_token %}
+                    <!-- Puedes llenar estos campos con JavaScript cuando se hace clic en el botón Editar -->
+                    <input type="hidden" id="editDni" name="dni">
+                    <div class="form-group">
+                        <label for="nombre_cliente">Nombre:</label>
+                        <input type="text" class="form-control" id="editNombre" name="nombre_cliente">
+                    </div>
+                    <!-- Agrega aquí los otros campos de la misma manera -->
+                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                </form>
+            </div>
         </div>
-        <div class="form-group">
-          <label for="garante_dniEditar">DNI del Garante:</label>
-          <input type="text" class="form-control" id="garante_dniEditar" name="garante_dni">
+    </div>
+</div>
+
+<!-- Eliminar cliente modal -->
+<div class="modal" id="eliminarClienteModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Eliminar Cliente</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas eliminar este cliente?
+                <form method="post" id="eliminarForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="deleteDni" name="dni">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
         </div>
-      </div>
-      <!-- Botones para guardar o cancelar el formulario -->
-      <button type="button" class="btn btn-success" onclick="guardarCliente('editar')">Guardar</button>
-      <button type="button" class="btn btn-danger" onclick="cancelarFormulario('editar')">Cancelar</button>
-    </form>
-  </div>
+    </div>
+</div>
 
-  <!-- Alerta de eliminación (inicialmente oculta) -->
-  <div id="alertaEliminar" style="display: none;">
-    <h3 style="color: navy;">¿Estás seguro de que deseas eliminar este cliente?</h3>
-    <button class="btn btn-danger" onclick="eliminarCliente()">ELIMINAR</button>
-    <button class="btn btn-light" onclick="cancelarEliminar()">NO</button>
-  </div>
+<!-- Aquí continúan tus otros modals -->
 
-  <!-- Agrega un contenedor div para el menú flotante -->
- <div id="menuFlotante" style="display: none; position: fixed; top: 20px; right: 20px; background-color: white; border: 1px solid #ccc; padding: 10px; max-width: 300px;">
-    <button style="position: absolute; top: 5px; right: 5px; background-color: lightgreen; border: none; color: white; padding: 5px 10px; cursor: pointer;" onclick="cerrarMenuFlotante()">X</button>
-    <h2 style="color: navy;">Información del Cliente</h2>
-    <p><strong>ID:</strong> <span id="infoId"></span></p>
-    <p><strong>Nombre:</strong> <span id="infoNombre"></span></p>
-    <p><strong>Apellido:</strong> <span id="infoApellido"></span></p>
-    <p><strong>DNI:</strong> <span id="infoDni"></span></p>
-    <p><strong>Fecha de Nacimiento:</strong> <span id="infoFechaNacimiento"></span></p>
-    <p><strong>Tipo de Cliente:</strong> <span id="infoTipoCliente"></span></p>
-    <p><strong>Nombre del Garante:</strong> <span id="infoGaranteNombre"></span></p>
-    <p><strong>Apellido del Garante:</strong> <span id="infoGaranteApellido"></span></p>
-    <p><strong>DNI del Garante:</strong> <span id="infoGaranteDni"></span></p>
-  </div>
-  
+<!-- Bootstrap JS y jQuery -->
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-  <div id="messages"></div>
-
+</body>
+</html>
 {% endblock %}
