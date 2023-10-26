@@ -71,42 +71,32 @@ def login_entrar(request):
             return redirect("tasks")
         
 
-def lista_clientes(request):
+def gestion_clientes(request, dni=None, accion=None):
+    cliente = None
+    form = None
+
+    if dni:
+        cliente = get_object_or_404(Cliente, dni=dni)
+
+    if request.method == "POST":
+        if accion == "crear":
+            form = ClienteForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect('lista_clientes')
+        elif accion == "editar":
+            form = ClienteForm(request.POST, instance=cliente)
+            if form.is_valid():
+                form.save()
+                return redirect('lista_clientes')
+        elif accion == "eliminar":
+            cliente.delete()
+            return redirect('lista_clientes')
+    else:
+        if accion == "crear":
+            form = ClienteForm()
+        elif accion == "editar":
+            form = ClienteForm(instance=cliente)
+
     clientes = Cliente.objects.all()
-    return render(request, 'clientes.html', {'clientes': clientes})
-
-# Detalles de cliente
-def detalle_cliente(request, dni):
-    cliente = get_object_or_404(Cliente, dni=dni)
-    return render(request, 'detalle_cliente.html', {'cliente': cliente})
-
-# Crear cliente
-def crear_cliente(request):
-    if request.method == "POST":
-        form = ClienteForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('clientes')
-    else:
-        form = ClienteForm()
-    return render(request, 'crear_cliente.html', {'form': form})
-
-# Actualizar cliente
-def editar_cliente(request, dni):
-    cliente = get_object_or_404(Cliente, dni=dni)
-    if request.method == "POST":
-        form = ClienteForm(request.POST, instance=cliente)
-        if form.is_valid():
-            form.save()
-            return redirect('detalle_cliente', dni=cliente.dni)
-    else:
-        form = ClienteForm(instance=cliente)
-    return render(request, 'editar_cliente.html', {'form': form})
-
-# Eliminar cliente
-def eliminar_cliente(request, dni):
-    cliente = get_object_or_404(Cliente, dni=dni)
-    if request.method == "POST":
-        cliente.delete()
-        return redirect('lista_clientes')
-    return render(request, 'eliminar_cliente.html', {'cliente': cliente})
+    return render(request, 'clientes.html', {'clientes': clientes, 'form': form, 'accion': accion})
