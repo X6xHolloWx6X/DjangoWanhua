@@ -9,8 +9,8 @@ urlpatterns = [
     path("tasks/", views.tasks, name="tasks"),
     path("salir/", views.cerrar_sesion, name="cerrar_sesion"),
     path("login/", views.login_entrar, name="entrar_sesion"),
-    path('clientes/', views.gestion_clientes, name='lista_clientes'),
-    path('clientes/crear/', views.gestion_clientes, {'accion': 'crear'}, name='crear_cliente'),
-    path('clientes/editar/<str:dni>/', views.gestion_clientes, {'accion': 'editar'}, name='editar_cliente'),
-    path('clientes/eliminar/<str:dni>/', views.gestion_clientes, {'accion': 'eliminar'}, name='eliminar_cliente'),
+    path('clientes/', views.cliente_list, name='cliente_list'),
+    path('cliente/create/', views.cliente_create, name='cliente_create'),
+    path('cliente/update/<str:dni>/', views.cliente_update, name='cliente_update'),
+    path('cliente/delete/<str:dni>/', views.cliente_delete, name='cliente_delete'),
 ]

@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.db import IntegrityError
+from django.urls import reverse
+
 from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponse, JsonResponse
 from .models import Cliente
@@ -71,32 +73,36 @@ def login_entrar(request):
             return redirect("tasks")
         
 
-def gestion_clientes(request, dni=None, accion=None):
-    cliente = None
-    form = None
-
-    if dni:
-        cliente = get_object_or_404(Cliente, dni=dni)
-
-    if request.method == "POST":
-        if accion == "crear":
-            form = ClienteForm(request.POST)
-            if form.is_valid():
-                form.save()
-                return redirect('lista_clientes')
-        elif accion == "editar":
-            form = ClienteForm(request.POST, instance=cliente)
-            if form.is_valid():
-                form.save()
-                return redirect('lista_clientes')
-        elif accion == "eliminar":
-            cliente.delete()
-            return redirect('lista_clientes')
-    else:
-        if accion == "crear":
-            form = ClienteForm()
-        elif accion == "editar":
-            form = ClienteForm(instance=cliente)
-
+def cliente_list(request):
     clientes = Cliente.objects.all()
-    return render(request, 'clientes.html', {'clientes': clientes, 'form': form, 'accion': accion})
+    form = None
+    return render(request, 'clientes.html', {'clientes': clientes, 'form': form})
+
+def cliente_create(request):
+    if request.method == 'POST':
+        form = ClienteForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('cliente_list'))
+    else:
+        form = ClienteForm()
+    clientes = Cliente.objects.all()
+    return render(request, 'clientes.html', {'form': form, 'clientes': clientes})
+
+def cliente_update(request, dni):
+    cliente = Cliente.objects.get(dni=dni)
+    if request.method == 'POST':
+        form = ClienteForm(request.POST, instance=cliente)  # Asegúrate de pasar 'instance=cliente'
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('cliente_list'))
+    else:
+        form = ClienteForm(instance=cliente)
+    clientes = Cliente.objects.all()
+    return render(request, 'clientes.html', {'form': form, 'clientes': clientes})
+
+
+def cliente_delete(request, dni):
+    cliente = Cliente.objects.get(dni=dni)
+    cliente.delete()
+    return redirect(reverse('cliente_list'))
