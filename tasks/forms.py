@@ -9,4 +9,4 @@ class ClienteForm(forms.ModelForm):
 class PropiedadesForm(forms.ModelForm):
     class Meta:
         model = Propiedades
-        fields = ['cliente', 'area_total', 'nro_habitaciones', 'precio_alq', 'descripcion']
+        fields = ['cliente', 'area_total', 'nro_habitaciones', 'precio_alq', 'descripcion', 'direccion', 'foto1', 'foto2', 'foto3']

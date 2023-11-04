@@ -6,6 +6,12 @@
         <div class="col-md-12">
             <h2 class="mb-4">Clientes</h2>
             
+            <!-- Barra de búsqueda -->
+            <form method="get" action="{% url 'cliente_list' %}">
+                <input type="text" name="search" placeholder="Buscar cliente...">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+            </form>
+            
             <!-- Formulario para crear o editar un cliente -->
             {% if form %}
             <div class="card mb-4">
@@ -63,7 +69,7 @@
                                 </td>
                                 <td>
                                     <a href="{% url 'cliente_update' cliente.dni %}" class="btn btn-sm btn-warning">Editar</a>
-                                    <a href="{% url 'cliente_delete' cliente.dni %}" class="btn btn-sm btn-danger">Eliminar</a>
+                                    <a href="{% url 'cliente_delete' cliente.dni %}" class="btn btn-sm btn-danger" onclick="return confirmDelete()">Eliminar</a>
                                     <!-- Ícono de la casa para redirigir a la página de propiedades -->
                                     <a href="{% url 'propiedades_list_by_dni' cliente.dni %}" class="btn btn-sm btn-info"><i class="fas fa-home"></i></a>
                                 </td>
@@ -72,6 +78,25 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+            
+            <!-- Paginación -->
+            <div class="pagination">
+                <span class="step-links">
+                    {% if clientes.has_previous %}
+                        <a href="?page=1">&laquo; first</a>
+                        <a href="?page={{ clientes.previous_page_number }}">previous</a>
+                    {% endif %}
+
+                    <span class="current-page">
+                        Page {{ clientes.number }} of {{ clientes.paginator.num_pages }}.
+                    </span>
+
+                    {% if clientes.has_next %}
+                        <a href="?page={{ clientes.next_page_number }}">next</a>
+                        <a href="?page={{ clientes.paginator.num_pages }}">last &raquo;</a>
+                    {% endif %}
+                </span>
             </div>
         </div>
     </div>

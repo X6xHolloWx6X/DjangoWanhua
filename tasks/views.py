@@ -3,7 +3,8 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.urls import reverse
-
+from django.db.models import Q
+from django.core.paginator import Paginator
 from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponse, JsonResponse
 from .models import Cliente, Propiedades
@@ -74,7 +75,22 @@ def login_entrar(request):
         
 
 def cliente_list(request):
-    clientes = Cliente.objects.all()
+    search_query = request.GET.get('search')
+    clientes_list = Cliente.objects.all()
+
+    if search_query:
+        clientes_list = clientes_list.filter(
+            Q(dni__icontains=search_query) |
+            Q(nombre_cliente__icontains=search_query) |
+            Q(tel_cliente__icontains=search_query) |
+            Q(email_cliente__icontains=search_query) |
+            Q(direccion_cliente__icontains=search_query)
+        )
+
+    paginator = Paginator(clientes_list, 2)
+    page = request.GET.get('page')
+    clientes = paginator.get_page(page)
+
     form = None
     return render(request, 'clientes.html', {'clientes': clientes, 'form': form})
 
@@ -83,7 +99,7 @@ def cliente_create(request):
         form = ClienteForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect(reverse('cliente_list'))
+            return redirect('cliente_list')
     else:
         form = ClienteForm()
     clientes = Cliente.objects.all()
@@ -92,10 +108,10 @@ def cliente_create(request):
 def cliente_update(request, dni):
     cliente = Cliente.objects.get(dni=dni)
     if request.method == 'POST':
-        form = ClienteForm(request.POST, instance=cliente)  # Asegúrate de pasar 'instance=cliente'
+        form = ClienteForm(request.POST, instance=cliente)
         if form.is_valid():
             form.save()
-            return redirect(reverse('cliente_list'))
+            return redirect('cliente_list')
     else:
         form = ClienteForm(instance=cliente)
     clientes = Cliente.objects.all()
@@ -110,7 +126,7 @@ def cliente_delete(request, dni):
 def propiedades_list(request, dni_cliente):
     cliente = get_object_or_404(Cliente, dni=dni_cliente)
     if request.method == 'POST':
-        form = PropiedadesForm(request.POST)
+        form = PropiedadesForm(request.POST, request.FILES)  # Agregar request.FILES
         if form.is_valid():
             propiedad = form.save(commit=False)
             propiedad.cliente = cliente
@@ -122,17 +138,17 @@ def propiedades_list(request, dni_cliente):
     propiedades = Propiedades.objects.filter(cliente=cliente)
     return render(request, 'propiedades.html', {'propiedades': propiedades, 'form': form, 'cliente': cliente})
 
-
 def propiedades_edit(request, id):
     propiedad = get_object_or_404(Propiedades, ID_prop=id)
     if request.method == 'POST':
-        form = PropiedadesForm(request.POST, instance=propiedad)
+        form = PropiedadesForm(request.POST, request.FILES, instance=propiedad)  # Agregar request.FILES
         if form.is_valid():
             form.save()
             return redirect('propiedades_list_by_dni', dni_cliente=propiedad.cliente.dni)
     else:
         form = PropiedadesForm(instance=propiedad)
     return render(request, 'propiedades.html', {'form': form, 'cliente': propiedad.cliente, 'editing': True})
+
 
 
 def propiedades_delete(request, id):
