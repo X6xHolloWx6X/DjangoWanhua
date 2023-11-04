@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4">Propiedades de {{ cliente.nombre_cliente }}</h2>
+            
+            <!-- Botón para abrir el modal -->
+            <button type="button" class="btn btn-primary mb-4" data-toggle="modal" data-target="#propiedadModal">
+                {% if form.instance.pk %}
+                    Editar Propiedad
+                {% else %}
+                    Agregar Propiedad
+                {% endif %}
+            </button>
+
+            <!-- Modal para agregar o editar propiedades -->
+            <div class="modal fade" id="propiedadModal" tabindex="-1" role="dialog" aria-labelledby="propiedadModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="propiedadModalLabel">
+                                {% if form.instance.pk %}
+                                    Editar Propiedad
+                                {% else %}
+                                    Agregar Propiedad
+                                {% endif %}
+                            </h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form method="post" action="">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    {% for field in form %}
+                                        <div class="form-group">
+                                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                            {{ field|add_class:"form-control" }}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                            {% if field.errors %}
+                                                <div class="alert alert-danger">
+                                                    {{ field.errors }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                                    <button type="submit" class="btn btn-primary">Guardar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tabla de propiedades -->
+            <div class="card">
+                <div class="card-header">
+                    <h4>Lista de Propiedades</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>DNI Propietario</th>
+                                <th>Nombre Propietario</th>
+                                <th>Área Total</th>
+                                <th>Número de Habitaciones</th>
+                                <th>Precio de Alquiler</th>
+                                <th>Descripción</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for propiedad in propiedades %}
+                            <tr>
+                                <td>{{ propiedad.ID_prop }}</td>
+                                <td>{{ cliente.dni }}</td>
+                                <td>{{ cliente.nombre_cliente }}</td>
+                                <td>{{ propiedad.area_total }}</td>
+                                <td>{{ propiedad.nro_habitaciones }}</td>
+                                <td>{{ propiedad.precio_alq }}</td>
+                                <td>{{ propiedad.descripcion }}</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-warning edit-btn" data-toggle="modal" data-target="#propiedadModal" data-id="{{ propiedad.ID_prop }}">Editar</button>
+                                    <button data-href="{% url 'propiedades_delete' propiedad.ID_prop %}" class="btn btn-sm btn-danger delete-btn">Eliminar</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.delete-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        let href = this.getAttribute('data-href');
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¡No podrás revertir esto!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: '¡Sí, bórralo!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let form = document.createElement('form');
+                form.method = 'POST';
+                form.action = href;
+                let csrf = document.createElement('input');
+                csrf.type = 'hidden';
+                csrf.name = 'csrfmiddlewaretoken';
+                csrf.value = '{{ csrf_token }}';
+                form.appendChild(csrf);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+});
+
+document.querySelectorAll('.edit-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        let id = this.getAttribute('data-id');
+        let form = document.querySelector('#propiedadModal form');
+        form.action = `/propiedades/${id}/edit/`;
+    });
+});
+
+</script>
+<!-- Bootstrap CSS -->
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+{% endblock %}

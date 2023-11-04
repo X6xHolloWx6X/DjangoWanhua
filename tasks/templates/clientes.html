@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 
-
 {% block content %}
 <div class="container mt-5">
     <div class="row">
@@ -22,38 +21,8 @@
                 <div class="card-body">
                     <form method="post" action="{% if form.instance.pk %}{% url 'cliente_update' form.instance.dni %}{% else %}{% url 'cliente_create' %}{% endif %}">
                         {% csrf_token %}
-                        
-                        <!-- DNI -->
-                        <div class="form-group">
-                            {{ form.dni.label_tag }} 
-                            {{ form.dni }}
-                        </div>
-
-                        <!-- Nombre -->
-                        <div class="form-group">
-                            {{ form.nombre_cliente.label_tag }} 
-                            {{ form.nombre_cliente }}
-                        </div>
-
-                        <!-- Teléfono -->
-                        <div class="form-group">
-                            {{ form.tel_cliente.label_tag }} 
-                            {{ form.tel_cliente }}
-                        </div>
-
-                        <!-- Email -->
-                        <div class="form-group">
-                            {{ form.email_cliente.label_tag }} 
-                            {{ form.email_cliente }}
-                        </div>
-
-                        <!-- Dirección -->
-                        <div class="form-group">
-                            {{ form.direccion_cliente.label_tag }} 
-                            {{ form.direccion_cliente }}
-                        </div>
-
-                        <button type="submit" class="btn btn-success">Guardar</button>
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary">Guardar</button>
                     </form>
                 </div>
             </div>
@@ -73,6 +42,7 @@
                                 <th>Teléfono</th>
                                 <th>Email</th>
                                 <th>Dirección</th>
+                                <th>Inmueble</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -85,8 +55,17 @@
                                 <td>{{ cliente.email_cliente }}</td>
                                 <td>{{ cliente.direccion_cliente }}</td>
                                 <td>
+                                    {% if cliente.propiedades_set.exists %}
+                                        <a href="{% url 'propiedades_list_by_dni' cliente.dni %}" class="btn btn-sm btn-success">Ver Propiedades</a>
+                                    {% else %}
+                                        No tiene inmueble
+                                    {% endif %}
+                                </td>
+                                <td>
                                     <a href="{% url 'cliente_update' cliente.dni %}" class="btn btn-sm btn-warning">Editar</a>
-                                    <a href="{% url 'cliente_delete' cliente.dni %}" class="btn btn-sm btn-danger" onclick="return confirmDelete();">Eliminar</a>
+                                    <a href="{% url 'cliente_delete' cliente.dni %}" class="btn btn-sm btn-danger">Eliminar</a>
+                                    <!-- Ícono de la casa para redirigir a la página de propiedades -->
+                                    <a href="{% url 'propiedades_list_by_dni' cliente.dni %}" class="btn btn-sm btn-info"><i class="fas fa-home"></i></a>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -123,4 +102,6 @@
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<!-- FontAwesome -->
+<script src="https://kit.fontawesome.com/your-fontawesome-kit.js"></script>
 {% endblock %}
