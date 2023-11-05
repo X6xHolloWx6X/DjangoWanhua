@@ -1,13 +1,19 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
 {% block content %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap CSS -->
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-12">
             <h2 class="mb-4">Propiedades de {{ cliente.nombre_cliente }}</h2>
             
             <!-- Botón para abrir el modal -->
-            <button type="button" class="btn btn-primary mb-4" data-toggle="modal" data-target="#propiedadModal">
+            <button type="button" class="btn btn-primary mb-4" data-toggle="modal" data-target="#propiedadModal" data-action="{% if form.instance.pk %}edit{% else %}add{% endif %}">
                 {% if form.instance.pk %}
                     Editar Propiedad
                 {% else %}
@@ -36,18 +42,22 @@
                                 {% csrf_token %}
                                 <div class="mb-3">
                                     {% for field in form %}
-                                        <div class="form-group">
-                                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                                            {{ field|add_class:"form-control" }}
-                                            {% if field.help_text %}
-                                                <small class="form-text text-muted">{{ field.help_text }}</small>
-                                            {% endif %}
-                                            {% if field.errors %}
-                                                <div class="alert alert-danger">
-                                                    {{ field.errors }}
-                                                </div>
-                                            {% endif %}
-                                        </div>
+                                        {% if field.name == "cliente" %}
+                                            <input type="hidden" name="{{ field.name }}" value="{{ cliente.dni }}">
+                                        {% else %}
+                                            <div class="form-group">
+                                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                                {{ field|add_class:"form-control" }}
+                                                {% if field.help_text %}
+                                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                                {% endif %}
+                                                {% if field.errors %}
+                                                    <div class="alert alert-danger">
+                                                        {{ field.errors }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
                                     {% endfor %}
                                 </div>
                                 <div class="modal-footer">
@@ -182,7 +192,6 @@ document.querySelectorAll('.edit-btn').forEach(button => {
 
         // Cargar la información en el formulario
         form.querySelector('[name="direccion"]').value = this.getAttribute('data-direccion');
-        form.querySelector('[name="direccion"]').value = this.getAttribute('data-direccion');
         form.querySelector('[name="area_total"]').value = this.getAttribute('data-area_total');
         form.querySelector('[name="nro_habitaciones"]').value = this.getAttribute('data-nro_habitaciones');
         form.querySelector('[name="precio_alq"]').value = this.getAttribute('data-precio_alq');
@@ -190,9 +199,16 @@ document.querySelectorAll('.edit-btn').forEach(button => {
     });
 });
 
+// Cuando se abre el modal para agregar una nueva propiedad
+$('#propiedadModal').on('show.bs.modal', function (event) {
+    let button = $(event.relatedTarget); // Botón que activó el modal
+    let modal = $(this);
+    
+    // Si el botón es el de "Agregar Propiedad"
+    if (button.data('action') === 'add') {
+        // Establecer el valor del campo relacionado con el cliente al cliente actual
+        modal.find('input[name="cliente"]').val('{{ cliente.dni }}');
+    }
+});
 </script>
-<!-- Bootstrap CSS -->
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-<!-- SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 {% endblock %}
