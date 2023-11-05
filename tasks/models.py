@@ -8,10 +8,6 @@ class Cliente(models.Model):
         direccion_cliente = models.CharField(max_length=300)
         # ... y cualquier otro campo o método que hayas definido
 
-from django.db import models
-
-from django.db import models
-
 class Propiedades(models.Model):
     ID_prop = models.AutoField(primary_key=True)
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
@@ -24,6 +20,6 @@ class Propiedades(models.Model):
     direccion = models.CharField(max_length=255, null=True, blank=True)
 
     # Agregando campos para las fotos con la posibilidad de ser nulos
-    foto1 = models.ImageField(upload_to='tasks/propiedades/fotos/', null=True, blank=True, default='tasks/propiedades/fotos/default.jpg')
-    foto2 = models.ImageField(upload_to='tasks/propiedades/fotos/', null=True, blank=True, default='tasks/propiedades/fotos/default.jpg')
-    foto3 = models.ImageField(upload_to='tasks/propiedades/fotos/', null=True, blank=True, default='tasks/propiedades/fotos/default.jpg')
+    foto1 = models.ImageField(upload_to='propiedades/fotos/', null=True, blank=True, default='propiedades/fotos/default.jpg')
+    foto2 = models.ImageField(upload_to='propiedades/fotos/', null=True, blank=True, default='propiedades/fotos/default.jpg')
+    foto3 = models.ImageField(upload_to='propiedades/fotos/', null=True, blank=True, default='propiedades/fotos/default.jpg')

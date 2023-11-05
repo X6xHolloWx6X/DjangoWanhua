@@ -68,7 +68,7 @@
                             {% if propiedad.foto1 %}
                                 <img src="{{ propiedad.foto1.url }}" alt="Foto 1" class="card-img-top">
                             {% else %}
-                                <img src="/static/propiedades/fotos/default.jpg" alt="Foto 1" class="card-img-top">
+                                <img src="propiedades/fotos/default.jpg" alt="Foto 1" class="card-img-top">
                             {% endif %}
                             <div class="card-body">
                                 <h5 class="card-title">Propiedad ID: {{ propiedad.ID_prop }}</h5>
@@ -79,7 +79,7 @@
                                 <p class="card-text">Descripción: {{ propiedad.descripcion }}</p>
                                 <div class="text-center">
                                     <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#infoModal{{ propiedad.ID_prop }}">Ver Información</a>
-                                    <button type="button" class="btn btn-warning edit-btn" data-toggle="modal" data-target="#propiedadModal" data-id="{{ propiedad.ID_prop }}">Editar</button>
+                                    <button type="button" class="btn btn-warning edit-btn" data-toggle="modal" data-target="#propiedadModal" data-id="{{ propiedad.ID_prop }}" data-direccion="{{ propiedad.direccion }}" data-area_total="{{ propiedad.area_total }}" data-nro_habitaciones="{{ propiedad.nro_habitaciones }}" data-precio_alq="{{ propiedad.precio_alq }}" data-descripcion="{{ propiedad.descripcion }}">Editar</button>
                                     <button data-href="{% url 'propiedades_delete' propiedad.ID_prop %}" class="btn btn-danger delete-btn">Eliminar</button>
                                 </div>
                             </div>
@@ -109,14 +109,14 @@
                                             {% if propiedad.foto2 %}
                                                 <img src="{{ propiedad.foto2.url }}" alt="Foto 2" class="img-fluid">
                                             {% else %}
-                                                <img src="/static/propiedades/fotos/default.jpg" alt="Foto 2" class="img-fluid">
+                                                <img src="propiedades/fotos/default.jpg" alt="Foto 2" class="img-fluid">
                                             {% endif %}
                                         </div>
                                         <div class="col-md-4">
                                             {% if propiedad.foto3 %}
                                                 <img src="{{ propiedad.foto3.url }}" alt="Foto 3" class="img-fluid">
                                             {% else %}
-                                                <img src="/static/propiedades/fotos/default.jpg" alt="Foto 3" class="img-fluid">
+                                                <img src="propiedades/fotos/default.jpg" alt="Foto 3" class="img-fluid">
                                             {% endif %}
                                         </div>
                                         <div class="col-md-6">
@@ -179,6 +179,14 @@ document.querySelectorAll('.edit-btn').forEach(button => {
         let id = this.getAttribute('data-id');
         let form = document.querySelector('#propiedadModal form');
         form.action = `/propiedades/${id}/edit/`;
+
+        // Cargar la información en el formulario
+        form.querySelector('[name="direccion"]').value = this.getAttribute('data-direccion');
+        form.querySelector('[name="direccion"]').value = this.getAttribute('data-direccion');
+        form.querySelector('[name="area_total"]').value = this.getAttribute('data-area_total');
+        form.querySelector('[name="nro_habitaciones"]').value = this.getAttribute('data-nro_habitaciones');
+        form.querySelector('[name="precio_alq"]').value = this.getAttribute('data-precio_alq');
+        form.querySelector('[name="descripcion"]').value = this.getAttribute('data-descripcion');
     });
 });
 
