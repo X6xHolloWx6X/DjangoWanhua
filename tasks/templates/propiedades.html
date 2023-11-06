@@ -8,6 +8,9 @@
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
 <style>
     .card {
         transition: transform 0.3s, box-shadow 0.3s;
@@ -59,14 +62,15 @@
         <div class="col-md-12">
             <h2 class="mb-4">Propiedades de {{ cliente.nombre_cliente }}</h2>
             
-            <!-- Botón para abrir el modal -->
             <button type="button" class="btn btn-primary mb-4" data-toggle="modal" data-target="#propiedadModal" data-action="{% if form.instance.pk %}edit{% else %}add{% endif %}">
+                <i class="fas fa-plus"></i>
                 {% if form.instance.pk %}
                     Editar Propiedad
                 {% else %}
                     Agregar Propiedad
                 {% endif %}
             </button>
+            
 
             <!-- Modal para agregar o editar propiedades -->
             <div class="modal fade" id="propiedadModal" tabindex="-1" role="dialog" aria-labelledby="propiedadModalLabel" aria-hidden="true">
@@ -137,9 +141,16 @@
                                 <p class="card-text">Precio de Alquiler: {{ propiedad.precio_alq }}</p>
                                 <p class="card-text">Descripción: {{ propiedad.descripcion }}</p>
                                 <div class="text-center">
-                                    <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#infoModal{{ propiedad.ID_prop }}">Ver Información</a>
-                                    <button type="button" class="btn btn-warning edit-btn" data-toggle="modal" data-target="#propiedadModal" data-id="{{ propiedad.ID_prop }}" data-direccion="{{ propiedad.direccion }}" data-area_total="{{ propiedad.area_total }}" data-nro_habitaciones="{{ propiedad.nro_habitaciones }}" data-precio_alq="{{ propiedad.precio_alq }}" data-descripcion="{{ propiedad.descripcion }}">Editar</button>
-                                    <button data-href="{% url 'propiedades_delete' propiedad.ID_prop %}" class="btn btn-danger delete-btn">Eliminar</button>
+                                    <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#infoModal{{ propiedad.ID_prop }}">
+                                        <i class="fas fa-info-circle"></i> Ver Información
+                                    </a>
+                                    <button type="button" class="btn btn-warning edit-btn" data-toggle="modal" data-target="#propiedadModal" data-id="{{ propiedad.ID_prop }}" data-direccion="{{ propiedad.direccion }}" data-area_total="{{ propiedad.area_total }}" data-nro_habitaciones="{{ propiedad.nro_habitaciones }}" data-precio_alq="{{ propiedad.precio_alq }}" data-descripcion="{{ propiedad.descripcion }}">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </button>                                    
+                                    <button data-href="{% url 'propiedades_delete' propiedad.ID_prop %}" class="btn btn-danger delete-btn">
+                                        <i class="fas fa-trash"></i> Eliminar
+                                    </button>
+                                    
                                 </div>
                             </div>
                         </div>
