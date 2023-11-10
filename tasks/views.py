@@ -134,20 +134,21 @@ def propiedades_list(request, dni_cliente):
             return redirect('propiedades_list_by_dni', dni_cliente=dni_cliente)
     else:
         form = PropiedadesForm()
-
     propiedades = Propiedades.objects.filter(cliente=cliente)
     return render(request, 'propiedades.html', {'propiedades': propiedades, 'form': form, 'cliente': cliente})
 
 def propiedades_edit(request, id):
     propiedad = get_object_or_404(Propiedades, ID_prop=id)
     if request.method == 'POST':
+
         form = PropiedadesForm(request.POST, request.FILES, instance=propiedad)  # Agregar request.FILES
         if form.is_valid():
             form.save()
             return redirect('propiedades_list_by_dni', dni_cliente=propiedad.cliente.dni)
     else:
         form = PropiedadesForm(instance=propiedad)
-    return render(request, 'propiedades.html', {'form': form, 'cliente': propiedad.cliente, 'editing': True})
+        return redirect('propiedades_list_by_dni', dni_cliente=propiedad.cliente.dni)
+    #return render(request, 'propiedades.html', {'form': form, 'cliente': propiedad.cliente, 'editing': True})
 
 
 
