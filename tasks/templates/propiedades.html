@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap CSS -->
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+<style>
+    .card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 12px 20px rgba(0,0,0,0.15);
+    }
+    
+    .btn {
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .btn-primary:hover, .btn-primary:focus {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+
+    .btn-warning {
+        background-color: #ffc107;
+        border-color: #ffc107;
+    }
+
+    .btn-warning:hover, .btn-warning:focus {
+        background-color: #ffa000;
+        border-color: #ffa000;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .btn-danger:hover, .btn-danger:focus {
+        background-color: #c82333;
+        border-color: #c82333;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4">Propiedades de {{ cliente.nombre_cliente }}</h2>
+            
+            <button type="button" class="btn btn-primary mb-4" data-toggle="modal" data-target="#propiedadModal" data-action="{% if form.instance.pk %}edit{% else %}add{% endif %}">
+                <i class="fas fa-plus"></i>
+                {% if form.instance.pk %}
+                    Editar Propiedad
+                {% else %}
+                    Agregar Propiedad
+                {% endif %}
+            </button>
+            
+
+            <!-- Modal para agregar o editar propiedades -->
+            <div class="modal fade" id="propiedadModal" tabindex="-1" role="dialog" aria-labelledby="propiedadModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="propiedadModalLabel">
+                                {% if form.instance.pk %}
+                                    Editar Propiedad
+                                {% else %}
+                                    Agregar Propiedad
+                                {% endif %}
+                            </h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form method="post" action="" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    {% for field in form %}
+                                        {% if field.name == "cliente" %}
+                                            <input type="hidden" name="{{ field.name }}" value="{{ cliente.dni }}">
+                                        {% else %}
+                                            <div class="form-group">
+                                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                                {{ field|add_class:"form-control" }}
+                                                {% if field.help_text %}
+                                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                                {% endif %}
+                                                {% if field.errors %}
+                                                    <div class="alert alert-danger">
+                                                        {{ field.errors }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                                    <button type="submit" class="btn btn-primary">Guardar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tarjetas de propiedades -->
+            <div class="row">
+                {% for propiedad in propiedades %}
+                <div class="col-md-4 mb-4 animate__animated animate__fadeInUp">
+                    <div class="card">
+                        {% if propiedad.foto1 %}
+                            <a href="{{ propiedad.foto1.url }}" data-toggle="lightbox" data-gallery="gallery" data-title="Foto 1">
+                                <img src="{{ propiedad.foto1.url }}" alt="Foto 1" class="card-img-top img-zoomable">
+                            </a>
+                        {% else %}
+                            <a href="propiedades/fotos/default.jpg" data-toggle="lightbox" data-gallery="gallery" data-title="Foto 1">
+                                <img src="propiedades/fotos/default.jpg" alt="Foto 1" class="card-img-top img-zoomable">
+                            </a>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">Propiedad ID: {{ propiedad.ID_prop }}</h5>
+                            <p class="card-text">Dirección: {{ propiedad.direccion }}</p>
+                            <p class="card-text">Área Total: {{ propiedad.area_total }}</p>
+                            <p class="card-text">Número de Habitaciones: {{ propiedad.nro_habitaciones }}</p>
+                            <p class="card-text">Precio de Alquiler: {{ propiedad.precio_alq }}</p>
+                            <p class="card-text">Descripción: {{ propiedad.descripcion }}</p>
+                            <div class="text-center">
+                                <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#infoModal{{ propiedad.ID_prop }}">
+                                    <i class="fas fa-info-circle"></i> Ver Información
+                                </a>
+                                <button type="button" class="btn btn-warning edit-btn" data-toggle="modal" data-target="#propiedadModal" data-id="{{ propiedad.ID_prop }}" data-direccion="{{ propiedad.direccion }}" data-area_total="{{ propiedad.area_total }}" data-nro_habitaciones="{{ propiedad.nro_habitaciones }}" data-precio_alq="{{ propiedad.precio_alq }}" data-descripcion="{{ propiedad.descripcion }}">
+                                    <i class="fas fa-edit"></i> Editar
+                                </button>
+                                <button data-href="{% url 'propiedades_delete' propiedad.ID_prop %}" class="btn btn-danger delete-btn">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
+                                <!-- Botón para Crear Contrato -->
+                                <a href="{% url 'crear_contrato' propiedad.cliente.dni propiedad.ID_prop %}" class="btn btn-success">
+                                    <i class="fas fa-plus"></i> Crear Contrato
+                                </a>
+                                {% if propiedad.cliente.contrato_set.exists %} <!-- Verifica si el cliente tiene contratos -->
+                                    <a href="{% url 'listar_contratos_cliente' propiedad.cliente.dni %}" class="btn btn-primary">
+                                        <i class="fas fa-list"></i> Ver Contratos del Cliente
+                                    </a>
+                                {% endif %}
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Modal de Información de Propiedad -->
+                    <div class="modal fade" id="infoModal{{ propiedad.ID_prop }}" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel{{ propiedad.ID_prop }}" aria-hidden="true">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="infoModalLabel{{ propiedad.ID_prop }}">Información de Propiedad</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            {% if propiedad.foto1 %}
+                                                <img src="{{ propiedad.foto1.url }}" alt="Foto 1" class="img-fluid">
+                                            {% else %}
+                                                <img src="/static/propiedades/fotos/default.jpg" alt="Foto 1" class="img-fluid">
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            {% if propiedad.foto2 %}
+                                                <img src="{{ propiedad.foto2.url }}" alt="Foto 2" class="img-fluid">
+                                            {% else %}
+                                                <img src="propiedades/fotos/default.jpg" alt="Foto 2" class="img-fluid">
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            {% if propiedad.foto3 %}
+                                                <img src="{{ propiedad.foto3.url }}" alt="Foto 3" class="img-fluid">
+                                            {% else %}
+                                                <img src="propiedades/fotos/default.jpg" alt="Foto 3" class="img-fluid">
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5 class="mb-3">Propiedad ID: {{ propiedad.ID_prop }}</h5>
+                                            <p><strong>Dirección:</strong> {{ propiedad.direccion }}</p>
+                                            <p><strong>Área Total:</strong> {{ propiedad.area_total }}</p>
+                                            <p><strong>Número de Habitaciones:</strong> {{ propiedad.nro_habitaciones }}</p>
+                                            <p><strong>Precio de Alquiler:</strong> {{ propiedad.precio_alq }}</p>
+                                            <p><strong>Descripción:</strong> {{ propiedad.descripcion }}</p>
+                                            <p><strong>Propietario DNI:</strong> {{ cliente.dni }}</p>
+                                            <p><strong>Propietario Nombre:</strong> {{ cliente.nombre_cliente }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="d-flex justify-content-center align-items-center" style="height: 60vh;">
+                        <div class="alert alert-info text-center animate__animated animate__fadeIn">
+                            Este cliente no tiene propiedad existente.
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+<script>
+document.querySelectorAll('.delete-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        let href = this.getAttribute('data-href');
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¡No podrás revertir esto!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: '¡Sí, bórralo!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let form = document.createElement('form');
+                form.method = 'POST';
+                form.action = href;
+                let csrf = document.createElement('input');
+                csrf.type = 'hidden';
+                csrf.name = 'csrfmiddlewaretoken';
+                csrf.value = '{{ csrf_token }}';
+                form.appendChild(csrf);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+});
+
+document.querySelectorAll('.edit-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        let id = this.getAttribute('data-id');
+        let form = document.querySelector('#propiedadModal form');
+        form.action = `/propiedades/${id}/edit/`;
+
+        // Cargar la información en el formulario
+        form.querySelector('[name="direccion"]').value = this.getAttribute('data-direccion');
+        form.querySelector('[name="area_total"]').value = this.getAttribute('data-area_total');
+        form.querySelector('[name="nro_habitaciones"]').value = this.getAttribute('data-nro_habitaciones');
+        form.querySelector('[name="precio_alq"]').value = this.getAttribute('data-precio_alq');
+        form.querySelector('[name="descripcion"]').value = this.getAttribute('data-descripcion');
+    });
+});
+
+// Cuando se abre el modal para agregar una nueva propiedad
+$('#propiedadModal').on('show.bs.modal', function (event) {
+    let button = $(event.relatedTarget); // Botón que activó el modal
+    let modal = $(this);
+    
+    // Si el botón es el de "Agregar Propiedad"
+    if (button.data('action') === 'add') {
+        // Establecer el valor del campo relacionado con el cliente al cliente actual
+        modal.find('input[name="cliente"]').val('{{ cliente.dni }}');
+    }
+});
+$(document).ready(function () {
+        $('.img-zoomable').elevateZoom({
+            zoomType: 'inner',
+            cursor: 'crosshair'
+        });
+    });
+
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            // ... (sin cambios) ...
+        });
+    });
+
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            // ... (sin cambios) ...
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Bootstrap CSS -->
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<!-- FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4">Clientes</h2>
+            
+            <!-- Barra de búsqueda -->
+            <form method="get" action="{% url 'cliente_list' %}">
+                <input type="text" name="search" placeholder="Buscar cliente...">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Buscar</button>
+
+            </form>
+            
+            <!-- Formulario para crear o editar un cliente -->
+            {% if form %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>
+                        {% if form.instance.pk %}
+                            Editar Cliente
+                        {% else %}
+                            Crear Cliente
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% if form.instance.pk %}{% url 'cliente_update' form.instance.dni %}{% else %}{% url 'cliente_create' %}{% endif %}">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar</button>
+
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Tabla de clientes -->
+            <div class="card">
+                <div class="card-header">
+                    <a href="{% url 'cliente_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Crear Cliente</a>
+
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>DNI</th>
+                                <th>Nombre</th>
+                                <th>Teléfono</th>
+                                <th>Email</th>
+                                <th>Dirección</th>
+                                <th>Inmueble</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cliente in clientes %}
+                            <tr>
+                                <td>{{ cliente.dni }}</td>
+                                <td>{{ cliente.nombre_cliente }}</td>
+                                <td>{{ cliente.tel_cliente }}</td>
+                                <td>{{ cliente.email_cliente }}</td>
+                                <td>{{ cliente.direccion_cliente }}</td>
+                                <td>
+                                    {% if cliente.propiedades_set.exists %}
+                                    <a href="{% url 'propiedades_list_by_dni' cliente.dni %}" class="btn btn-sm btn-success"><i class="fas fa-list"></i> Ver Propiedades</a>
+
+                                    {% else %}
+                                        No tiene inmueble
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'cliente_update' cliente.dni %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Editar</a>
+
+                                    <a href="{% url 'cliente_delete' cliente.dni %}" class="btn btn-sm btn-danger" onclick="return confirmDelete()"><i class="fas fa-trash-alt"></i> Eliminar</a>
+
+                                    <!-- Ícono de la casa para redirigir a la página de propiedades -->
+                                    <a href="{% url 'propiedades_list_by_dni' cliente.dni %}" class="btn btn-sm btn-info"><i class="fas fa-home"></i> Agregar Propiedad</a>
+
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Paginación -->
+            <div class="pagination">
+                <span class="step-links">
+                    {% if clientes.has_previous %}
+                        <a href="?page=1">&laquo; first</a>
+                        <a href="?page={{ clientes.previous_page_number }}">previous</a>
+                    {% endif %}
+
+                    <span class="current-page">
+                        Page {{ clientes.number }} of {{ clientes.paginator.num_pages }}.
+                    </span>
+
+                    {% if clientes.has_next %}
+                        <a href="?page={{ clientes.next_page_number }}">next</a>
+                        <a href="?page={{ clientes.paginator.num_pages }}">last &raquo;</a>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function confirmDelete() {
+        return Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¡No podrás revertir esto!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: '¡Sí, bórralo!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                return true;
+            } else {
+                return false;
+            }
+        });
+    }
+</script>
+{% endblock %}
