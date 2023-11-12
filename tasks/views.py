@@ -242,33 +242,26 @@ def crear_contrato(request, dni_cliente, propiedad_id):
     return render(request, 'contratos.html', context)
 
 
-def actualizar_contrato(request, id_contrato):
+def actualizar_contrato(request, id_contrato, dni_cliente):
     contrato = get_object_or_404(Contrato, id_contrato=id_contrato)
     if request.method == 'POST':
         form = ContratoForm(request.POST, instance=contrato)
         if form.is_valid():
             form.save()
-            return redirect('listar_contratos')
+            return redirect('listar_contratos_cliente', dni_cliente=dni_cliente)
     else:
         form = ContratoForm(instance=contrato)
 
-    return render(request, 'contratos.html', {'form': form, 'contrato': contrato})
+    return render(request, 'contratos.html', {'form': form, 'contrato': contrato, 'dni_cliente': dni_cliente})
 
-def eliminar_contrato(request, id_contrato):
+def eliminar_contrato(request, id_contrato, dni_cliente):
     contrato = get_object_or_404(Contrato, id_contrato=id_contrato)
     if request.method == 'POST':
         contrato.delete()
-        return redirect('listar_contratos')
+        return redirect('listar_contratos_cliente', dni_cliente=dni_cliente)
 
-    return render(request, 'confirmar_eliminacion.html', {'contrato': contrato})
+    return render(request, 'confirmar_eliminacion.html', {'contrato': contrato, 'dni_cliente': dni_cliente})
 
-def eliminar_contrato(request, id_contrato):
-    contrato = get_object_or_404(Contrato, id_contrato=id_contrato)
-    if request.method == 'POST':
-        contrato.delete()
-        return redirect('listar_contratos')
-
-    return render(request, 'confirmar_eliminacion.html', {'contrato': contrato})
 
 def generar_contrato_pdf(request, id_contrato):
     contrato = get_object_or_404(Contrato, id_contrato=id_contrato)
