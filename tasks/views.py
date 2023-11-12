@@ -204,7 +204,15 @@ def crear_contrato(request, dni_cliente, propiedad_id):
         # Pasa los valores de cliente y propiedad en el contexto del formulario
         form = ContratoForm(initial={'cliente': cliente, 'propiedades': propiedad})
 
-    return render(request, 'contratos.html', {'form': form, 'cliente': cliente, 'propiedad': propiedad})
+    # Agrega 'is_creating_new' al contexto
+    context = {
+        'form': form, 
+        'cliente': cliente, 
+        'propiedad': propiedad,
+        'is_creating_new': True  # Añade esta línea
+    }
+    return render(request, 'contratos.html', context)
+
 
 def actualizar_contrato(request, id_contrato):
     contrato = get_object_or_404(Contrato, id_contrato=id_contrato)
