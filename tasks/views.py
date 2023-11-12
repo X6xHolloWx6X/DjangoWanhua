@@ -4,12 +4,18 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.urls import reverse
 from django.db.models import Q
-from django.core.paginator import Paginator
+from django.http import HttpResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import login, logout, authenticate
 from .models import Cliente, Propiedades, Contrato
 from .forms import ClienteForm, PropiedadesForm, ContratoForm
 import os
+from datetime import datetime
 from django.conf import settings
+import textwrap
+
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 
 
 def home(request):
@@ -174,11 +180,33 @@ def propiedades_delete(request, id):
     return render(request, 'propiedades.html', {'propiedad_to_delete': propiedad, 'cliente': propiedad.cliente})
 
 def listar_contratos_cliente(request, dni_cliente):
-    # Aquí puedes implementar la lógica para obtener los contratos del cliente con el dni proporcionado
+    search_query = request.GET.get('search')
     contratos = Contrato.objects.filter(cliente__dni=dni_cliente)
 
-    # Luego, renderiza una plantilla con los contratos y cualquier otra información que desees mostrar
-    return render(request, 'contratos.html', {'contratos': contratos, 'dni_cliente': dni_cliente})
+    if search_query:
+        contratos = contratos.filter(
+            Q(id_contrato__icontains=search_query) |
+            Q(cliente__nombre_cliente__icontains=search_query) |
+            Q(cliente__dni__icontains=search_query) |
+            Q(propiedades__ID_prop__icontains=search_query) |
+            Q(propiedades__direccion__icontains=search_query) |
+            Q(fecha_inicio__icontains=search_query) |
+            Q(fecha_fin__icontains=search_query) |
+            Q(descripcion__icontains=search_query)
+        )
+
+    paginator = Paginator(contratos, 2)
+    page = request.GET.get('page')
+
+    try:
+        contratos_paginated = paginator.page(page)
+    except PageNotAnInteger:
+        contratos_paginated = paginator.page(1)
+    except EmptyPage:
+        contratos_paginated = paginator.page(paginator.num_pages)
+
+    dni_cliente = dni_cliente  # Puedes mantenerlo si lo necesitas
+    return render(request, 'contratos.html', {'contratos': contratos_paginated, 'dni_cliente': dni_cliente})
 
 def listar_contratos(request):
     contratos = Contrato.objects.all()
@@ -241,3 +269,51 @@ def eliminar_contrato(request, id_contrato):
         return redirect('listar_contratos')
 
     return render(request, 'confirmar_eliminacion.html', {'contrato': contrato})
+
+def generar_contrato_pdf(request, id_contrato):
+    contrato = get_object_or_404(Contrato, id_contrato=id_contrato)
+    cliente = contrato.cliente
+    propiedad = contrato.propiedades
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="contrato_{contrato.id_contrato}.pdf"'
+
+    p = canvas.Canvas(response, pagesize=letter)
+    p.setFont("Times-Bold", 14)
+
+    # Encabezado del contrato
+    p.drawString(50, 800, "Contrato de Administración de Propiedad")
+    p.setFont("Times-Roman", 12)
+    p.drawString(50, 780, f"El presente contrato se celebra el día {datetime.now().strftime('%d/%m/%Y')} entre Inmobiliaria Wanhua y:")
+    p.drawString(50, 765, f"Propietario: {cliente.nombre_cliente} (DNI: {cliente.dni})")
+
+    # Información de la propiedad
+    p.drawString(50, 750, f"Propiedad: {propiedad.direccion} (Área: {propiedad.area_total}m², Habitaciones: {propiedad.nro_habitaciones})")
+    p.drawString(50, 735, f"Valor de Alquiler Estimado: ${propiedad.precio_alq}")
+
+    # Cláusulas del contrato
+    p.setFont("Times-Roman", 11)
+    clausulas = [
+        f"CLÁUSULA PRIMERA: Objeto del Contrato - El presente contrato tiene por objeto la administración de la propiedad indicada, por parte de Inmobiliaria Wanhua, quien actuará como administrador de la misma.",
+        f"CLÁUSULA SEGUNDA: Duración - Este contrato tiene una duración de un año, iniciando el {contrato.fecha_inicio.strftime('%d/%m/%Y')} y concluyendo el {contrato.fecha_fin.strftime('%d/%m/%Y')}, con opción de renovación previo acuerdo de ambas partes."
+        # Agrega más cláusulas según sea necesario
+    ]
+
+    y_position = 720
+    for clausula in clausulas:
+        wrapped_text = textwrap.fill(clausula, 100)
+        for line in wrapped_text.split('\n'):
+            p.drawString(50, y_position, line)
+            y_position -= 15
+        y_position -= 10  # Espacio adicional entre cláusulas
+
+    # Espacio para las firmas
+    p.setFont("Times-Roman", 12)
+    p.drawString(50, y_position - 40, "Firma del Propietario: ___________________________")
+    p.drawString(50, y_position - 60, "Firma del Representante de Inmobiliaria Wanhua: ___________________________")
+    p.drawString(50, y_position - 80, "Fecha de Firma: ___________________________")
+
+    p.showPage()
+    p.save()
+    return response
+

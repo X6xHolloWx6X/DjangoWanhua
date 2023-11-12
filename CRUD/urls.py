@@ -23,6 +23,7 @@ urlpatterns = [
     path('contratos/crear/<str:dni_cliente>/<int:propiedad_id>/', views.crear_contrato, name='crear_contrato'),
     path('contratos/actualizar/<int:id_contrato>/', views.actualizar_contrato, name='actualizar_contrato'),
     path('contratos/eliminar/<int:id_contrato>/', views.eliminar_contrato, name='eliminar_contrato'),
+     path('contratos/generar_pdf/<int:id_contrato>/', views.generar_contrato_pdf, name='generar_contrato_pdf'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
