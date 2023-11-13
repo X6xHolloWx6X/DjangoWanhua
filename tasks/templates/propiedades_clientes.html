@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4 animate__animated animate__fadeIn">Listado de Propiedades</h2>
+
+            <!-- Campo de Búsqueda -->
+            <form method="get" class="mb-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="search" placeholder="Buscar...">
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Buscar</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="row">
+                {% for propiedad in propiedades %}
+                <div class="col-md-4 mb-4 animate__animated animate__fadeInUp">
+                    <div class="card h-100 shadow-sm">
+                        {% if propiedad.foto1 %}
+                            <a href="{{ propiedad.foto1.url }}" data-fancybox="gallery{{ propiedad.ID_prop }}" data-caption="Foto 1">
+                                <img src="{{ propiedad.foto1.url }}" alt="Foto 1" class="card-img-top img-fluid">
+                            </a>
+                        {% else %}
+                            <a href="{% static 'propiedades/fotos/default.jpg' %}" data-fancybox="gallery{{ propiedad.ID_prop }}" data-caption="Foto por defecto">
+                                <img src="{% static 'propiedades/fotos/default.jpg' %}" alt="Foto por defecto" class="card-img-top img-fluid">
+                            </a>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">Propiedad ID: {{ propiedad.ID_prop }}</h5>
+                            <p class="card-text">Dirección: {{ propiedad.direccion }}</p>
+                            <p class="card-text">Propietario: {{ propiedad.cliente.nombre_cliente }}</p>
+                            <p class="card-text">DNI del Propietario: {{ propiedad.cliente.dni }}</p>
+                            <p class="card-text">Área Total: {{ propiedad.area_total }}</p>
+                            <p class="card-text">Número de Habitaciones: {{ propiedad.nro_habitaciones }}</p>
+                            <p class="card-text">Precio de Alquiler: {{ propiedad.precio_alq }}</p>
+                            <p class="card-text">Descripción: {{ propiedad.descripcion }}</p>
+                            <div class="text-center">
+                                <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#infoModal{{ propiedad.ID_prop }}">
+                                    <i class="fas fa-info-circle"></i> Ver Información
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Modal de Información de Propiedad -->
+                <div class="modal fade" id="infoModal{{ propiedad.ID_prop }}" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel{{ propiedad.ID_prop }}" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="infoModalLabel{{ propiedad.ID_prop }}">Información de Propiedad</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row mb-3">
+                                    {% for foto in propiedad.lista_imagenes %}
+                                        {% if foto %}
+                                            <div class="col-md-4">
+                                                <a href="{{ foto.url }}" data-fancybox="gallery{{ propiedad.ID_prop }}" data-caption="Foto de la propiedad">
+                                                    <img src="{{ foto.url }}" alt="Foto de la propiedad" class="img-fluid">
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <!-- Resto de los detalles de la propiedad -->
+                                <p><strong>ID:</strong> {{ propiedad.ID_prop }}</p>
+                                <p><strong>Dirección:</strong> {{ propiedad.direccion }}</p>
+                                <p><strong>Propietario:</strong> {{ propiedad.cliente.nombre_cliente }}</p>
+                                <p><strong>DNI del Propietario:</strong> {{ propiedad.cliente.dni }}</p>
+                                <p><strong>Área Total:</strong> {{ propiedad.area_total }}</p>
+                                <p><strong>Número de Habitaciones:</strong> {{ propiedad.nro_habitaciones }}</p>
+                                <p><strong>Precio de Alquiler:</strong> {{ propiedad.precio_alq }}</p>
+                                <p><strong>Descripción:</strong> {{ propiedad.descripcion }}</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Paginación -->
+            <div class="d-flex justify-content-center mt-4">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        {% if propiedades.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page={{ propiedades.previous_page_number }}">Anterior</a></li>
+                        {% endif %}
+                        <li class="page-item active"><span class="page-link">{{ propiedades.number }}</span></li>
+                        {% if propiedades.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ propiedades.next_page_number }}">Siguiente</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

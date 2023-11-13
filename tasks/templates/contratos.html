@@ -14,152 +14,153 @@
     <button onclick="history.back()" class="btn btn-success mb-3">
         <i class="fas fa-arrow-left"></i> Volver Atrás
     </button>
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-12">
-            <h2 class="mb-4 text-center">Gestión de Contratos</h2>
 
-            {% if is_creating_new or form.instance.pk %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h4 class="text-center">{% if form.instance.pk %}Editar Contrato{% else %}Crear Contrato{% endif %}</h4>
-                </div>
-                <div class="card-body">
-                    {% if form.errors %}
-                    <div class="alert alert-danger">
-                        <strong>Error en el formulario:</strong>
-                        <ul>
-                            {% for field, errors in form.errors.items %}
-                            <li>{{ field }}:
-                                {% for error in errors %}
-                                {{ error }}
-                                {% endfor %}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-                    <form method="post" action="{% if form.instance.pk %}{% url 'actualizar_contrato' form.instance.pk form.instance.cliente.dni %}{% else %}{% url 'crear_contrato' cliente.dni propiedad.ID_prop %}{% endif %}">
+    <!-- Título de la Gestión de Contratos -->
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-12">
+                {% for contrato in contratos %}
+    <h2 class="mb-4">Gestión de contratos de {{ contrato.cliente.nombre_cliente }}</h2>
+{% endfor %}
 
-                        {% csrf_token %}
-                        {% for field in form %}
-                        <div class="form-group">
-                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                            {{ field|add_class:"form-control" }}
-                            {% if field.help_text %}
-                            <small class="form-text text-muted">{{ field.help_text }}</small>
-                            {% endif %}
-                        </div>
+
+    {% if is_creating_new or form.instance.pk %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="text-center">{% if form.instance.pk %}Editar Contrato{% else %}Crear Contrato{% endif %}</h4>
+        </div>
+        <div class="card-body">
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <strong>Error en el formulario:</strong>
+                <ul>
+                    {% for field, errors in form.errors.items %}
+                    <li>{{ field }}:
+                        {% for error in errors %}
+                        {{ error }}
                         {% endfor %}
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar</button>
-                    </form>
-                </div>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
             {% endif %}
-            
-            <!-- Formulario de búsqueda -->
-            <form method="get" class="mb-4">
-                <div class="input-group">
-                    <input type="text" class="form-control" name="search" placeholder="Buscar...">
-                    <div class="input-group-append">
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Buscar</button>
-                    </div>
+            <form method="post" action="{% if form.instance.pk %}{% url 'actualizar_contrato' form.instance.pk form.instance.cliente.dni %}{% else %}{% url 'crear_contrato' cliente.dni propiedad.ID_prop %}{% endif %}">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field|add_class:"form-control" }}
+                    {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
                 </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar</button>
             </form>
-            
-            <!-- Listado de contratos -->
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="text-center">Listado de Contratos</h4>
-                </div>
-                <div class="card-body">
-                    <table class="table table-bordered table-hover">
-                        <thead class="thead-dark">
-                            <tr>
-                                <th>ID Contrato</th>
-                                <th>Cliente</th>
-                                <th>DNI Cliente</th>
-                                <th>ID Propiedad</th>
-                                <th>Dirección Propiedad</th>
-                                <th>Fecha Inicio</th>
-                                <th>Fecha Fin</th>
-                                <th>Descripción</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for contrato in contratos %}
-                            <tr>
-                                <td>{{ contrato.id_contrato }}</td>
-                                <td>{{ contrato.cliente.nombre_cliente }}</td>
-                                <td>{{ contrato.cliente.dni }}</td>
-                                <td>{{ contrato.propiedades.ID_prop }}</td>
-                                <td>{{ contrato.propiedades.direccion }}</td>
-                                <td>{{ contrato.fecha_inicio }}</td>
-                                <td>{{ contrato.fecha_fin }}</td>
-                                <td>{{ contrato.descripcion }}</td>
-                                <td>
-                                    <a href="{% url 'actualizar_contrato' contrato.id_contrato contrato.cliente.dni %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Editar</a>
-
-                                    <a href="{% url 'generar_contrato_pdf' id_contrato=contrato.id_contrato %}" class="btn btn-sm btn-info"><i class="fas fa-file-pdf"></i> PDF</a>
-                                    <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#contractDetails{{ contrato.id_contrato }}"><i class="fas fa-eye"></i> Ver Información</button>
-                                    <form action="{% url 'eliminar_contrato' contrato.id_contrato contrato.cliente.dni %}" method="post" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirmDelete()"><i class="fas fa-trash-alt"></i> Eliminar</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            <div class="modal fade" id="contractDetails{{ contrato.id_contrato }}" tabindex="-1" role="dialog" aria-labelledby="contractDetailsLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-lg" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="contractDetailsLabel">Detalles del Contrato</h5>
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <h4>Información del Contrato</h4>
-                                            <p><strong>ID Contrato:</strong> {{ contrato.id_contrato }}</p>
-                                            <p><strong>Cliente:</strong> {{ contrato.cliente.nombre_cliente }}</p>
-                                            <p><strong>DNI Cliente:</strong> {{ contrato.cliente.dni }}</p>
-                                            <p><strong>ID Propiedad:</strong> {{ contrato.propiedades.ID_prop }}</p>
-                                            <p><strong>Dirección Propiedad:</strong> {{ contrato.propiedades.direccion }}</p>
-                                            <p><strong>Fecha Inicio:</strong> {{ contrato.fecha_inicio }}</p>
-                                            <p><strong>Fecha Fin:</strong> {{ contrato.fecha_fin }}</p>
-                                            <p><strong>Descripción:</strong> {{ contrato.descripcion }}</p>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <!-- Controles de paginación -->
-            <div class="d-flex justify-content-center mt-4">
-                <nav aria-label="Page navigation">
-                    <ul class="pagination">
-                    {% if contratos.has_previous %}
-                        <li class="page-item"><a class="page-link" href="?page=1">Primero</a></li>
-                        <li class="page-item"><a class="page-link" href="?page={{ contratos.previous_page_number }}">Anterior</a></li>
-                    {% endif %}
-                    
-                    <li class="page-item active"><span class="page-link">{{ contratos.number }}</span></li>
-                    
-                    {% if contratos.has_next %}
-                        <li class="page-item"><a class="page-link" href="?page={{ contratos.next_page_number }}">Siguiente</a></li>
-                        <li class="page-item"><a class="page-link" href="?page={{ contratos.paginator.num_pages }}">Último</a></li>
-                    {% endif %}
-                    </ul>
-                </nav>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Formulario de búsqueda -->
+    <form method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" class="form-control" name="search" placeholder="Buscar...">
+            <div class="input-group-append">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Buscar</button>
             </div>
         </div>
+    </form>
+    
+    <!-- Listado de contratos -->
+    <div class="card">
+        <div class="card-header">
+            <h4 class="text-center">Listado de Contratos</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>ID Contrato</th>
+                        <th>Cliente</th>
+                        <th>DNI Cliente</th>
+                        <th>ID Propiedad</th>
+                        <th>Dirección Propiedad</th>
+                        <th>Fecha Inicio</th>
+                        <th>Fecha Fin</th>
+                        <th>Descripción</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for contrato in contratos %}
+                    <tr>
+                        <td>{{ contrato.id_contrato }}</td>
+                        <td>{{ contrato.cliente.nombre_cliente }}</td>
+                        <td>{{ contrato.cliente.dni }}</td>
+                        <td>{{ contrato.propiedades.ID_prop }}</td>
+                        <td>{{ contrato.propiedades.direccion }}</td>
+                        <td>{{ contrato.fecha_inicio }}</td>
+                        <td>{{ contrato.fecha_fin }}</td>
+                        <td>{{ contrato.descripcion }}</td>
+                        <td>
+                            <a href="{% url 'actualizar_contrato' contrato.id_contrato contrato.cliente.dni %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Editar</a>
+                            <a href="{% url 'generar_contrato_pdf' id_contrato=contrato.id_contrato %}" class="btn btn-sm btn-info"><i class="fas fa-file-pdf"></i> PDF</a>
+                            <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#contractDetails{{ contrato.id_contrato }}"><i class="fas fa-eye"></i> Ver Información</button>
+                            <form action="{% url 'eliminar_contrato' contrato.id_contrato contrato.cliente.dni %}" method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirmDelete()"><i class="fas fa-trash-alt"></i> Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <div class="modal fade" id="contractDetails{{ contrato.id_contrato }}" tabindex="-1" role="dialog" aria-labelledby="contractDetailsLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="contractDetailsLabel">Detalles del Contrato</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <h4>Información del Contrato</h4>
+                                    <p><strong>ID Contrato:</strong> {{ contrato.id_contrato }}</p>
+                                    <p><strong>Cliente:</strong> {{ contrato.cliente.nombre_cliente }}</p>
+                                    <p><strong>DNI Cliente:</strong> {{ contrato.cliente.dni }}</p>
+                                    <p><strong>ID Propiedad:</strong> {{ contrato.propiedades.ID_prop }}</p>
+                                    <p><strong>Dirección Propiedad:</strong> {{ contrato.propiedades.direccion }}</p>
+                                    <p><strong>Fecha Inicio:</strong> {{ contrato.fecha_inicio }}</p>
+                                    <p><strong>Fecha Fin:</strong> {{ contrato.fecha_fin }}</p>
+                                    <p><strong>Descripción:</strong> {{ contrato.descripcion }}</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Controles de paginación -->
+    <div class="d-flex justify-content-center mt-4">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                {% if contratos.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page=1">Primero</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ contratos.previous_page_number }}">Anterior</a></li>
+                {% endif %}
+                
+                <li class="page-item active"><span class="page-link">{{ contratos.number }}</span></li>
+                
+                {% if contratos.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ contratos.next_page_number }}">Siguiente</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ contratos.paginator.num_pages }}">Último</a></li>
+                {% endif %}
+            </ul>
+        </nav>
     </div>
 </div>
 
@@ -179,5 +180,7 @@
             });
         };
     });
+
+
 </script>
 {% endblock %}

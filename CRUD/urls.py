@@ -18,6 +18,9 @@ urlpatterns = [
     path('propiedades/<str:dni_cliente>/', views.propiedades_list, name='propiedades_list_by_dni'),
     path('propiedades/<int:id>/edit/', views.propiedades_edit, name='propiedades_edit'),
     path('propiedades/<int:id>/delete/', views.propiedades_delete, name='propiedades_delete'),
+    # En tu urls.py
+path('propiedades-clientes/', views.propiedades_clientes_todas, name='propiedades_clientes_todas'),
+
     path('contratos/', views.listar_contratos, name='listar_contratos'),
     path('contratos/cliente/<str:dni_cliente>/', views.listar_contratos_cliente, name='listar_contratos_cliente'),
     path('contratos/crear/<str:dni_cliente>/<int:propiedad_id>/', views.crear_contrato, name='crear_contrato'),

@@ -130,6 +130,36 @@ def cliente_delete(request, dni):
     cliente.delete()
     return redirect(reverse('cliente_list'))
 
+
+def propiedades_clientes_todas(request):
+    # Obtener el término de búsqueda del query string
+    search_query = request.GET.get('search', '')
+
+    # Filtrar propiedades según la búsqueda
+    if search_query:
+        propiedades = Propiedades.objects.select_related('cliente').filter(
+            Q(direccion__icontains=search_query) | 
+            Q(cliente__nombre_cliente__icontains=search_query) | 
+            Q(cliente__dni__icontains=search_query)
+        )
+    else:
+        propiedades = Propiedades.objects.select_related('cliente').all()
+    for propiedad in propiedades:
+        # Crear una lista de imágenes
+        propiedad.lista_imagenes = [propiedad.foto1, propiedad.foto2, propiedad.foto3]
+
+    # Paginación
+    paginator = Paginator(propiedades, 3)  # 10 propiedades por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'propiedades_clientes.html', {'propiedades': page_obj})
+
+
+
+
+
+
 def propiedades_list(request, dni_cliente):
     cliente = get_object_or_404(Cliente, dni=dni_cliente)
     if request.method == 'POST':
