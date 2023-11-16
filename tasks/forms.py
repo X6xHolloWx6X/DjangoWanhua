@@ -17,6 +17,10 @@ class ContratoForm(forms.ModelForm):
     class Meta:
         model = Contrato
         fields = ['cliente', 'propiedades', 'fecha_inicio', 'fecha_fin', 'descripcion']
+        widgets = {
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date'}),
+            'fecha_fin': forms.DateInput(attrs={'type': 'date'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super(ContratoForm, self).__init__(*args, **kwargs)
