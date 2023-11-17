@@ -259,21 +259,24 @@ def crear_contrato(request, dni_cliente, propiedad_id):
             nuevo_contrato.save()
             return redirect('listar_contratos')
     else:
-        # Pasa los valores de cliente y propiedad en el contexto del formulario
         form = ContratoForm(initial={'cliente': cliente, 'propiedades': propiedad})
 
-    # Agrega 'is_creating_new' al contexto
+        # Hacer campos de solo lectura
+        form.fields['cliente'].widget.attrs['readonly'] = True
+        form.fields['propiedades'].widget.attrs['readonly'] = True
+
     context = {
-        'form': form, 
-        'cliente': cliente, 
+        'form': form,
+        'cliente': cliente,
         'propiedad': propiedad,
-        'is_creating_new': True  # Añade esta línea
+        'is_creating_new': True
     }
     return render(request, 'contratos.html', context)
 
 
 def actualizar_contrato(request, id_contrato, dni_cliente):
     contrato = get_object_or_404(Contrato, id_contrato=id_contrato)
+
     if request.method == 'POST':
         form = ContratoForm(request.POST, instance=contrato)
         if form.is_valid():
@@ -282,7 +285,12 @@ def actualizar_contrato(request, id_contrato, dni_cliente):
     else:
         form = ContratoForm(instance=contrato)
 
+        # Hacer los campos 'cliente' y 'propiedades' de solo lectura
+        form.fields['cliente'].widget.attrs['readonly'] = True
+        form.fields['propiedades'].widget.attrs['readonly'] = True
+
     return render(request, 'contratos.html', {'form': form, 'contrato': contrato, 'dni_cliente': dni_cliente})
+
 
 def eliminar_contrato(request, id_contrato, dni_cliente):
     contrato = get_object_or_404(Contrato, id_contrato=id_contrato)

@@ -15,43 +15,37 @@
         <i class="fas fa-arrow-left"></i> Volver Atrás
     </button>
 
-    <!-- Título de la Gestión de Contratos -->
-    <div class="container mt-5">
-        <div class="row">
-            <div class="col-md-12">
-                {% for contrato in contratos %}
-    <h2 class="mb-4">Gestión de contratos de {{ contrato.cliente.nombre_cliente }}</h2>
-{% endfor %}
-
-
-    {% if is_creating_new or form.instance.pk %}
-    <div class="card mb-4">
-        <div class="card-header">
-            <h4 class="text-center">{% if form.instance.pk %}Editar Contrato{% else %}Crear Contrato{% endif %}</h4>
-        </div>
-        <div class="card-body">
-            {% if form.errors %}
-            <div class="alert alert-danger">
-                <strong>Error en el formulario:</strong>
-                <ul>
-                    {% for field, errors in form.errors.items %}
-                    <li>{{ field }}:
-                        {% for error in errors %}
-                        {{ error }}
-                        {% endfor %}
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
+     
+  <!-- Título de la Gestión de Contratos -->
+  <div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            {% if contratos %}
+                <h2 class="mb-4">Gestión de contratos de {{ contratos.first.cliente.nombre_cliente }}</h2>
+            {% else %}
+                <h2 class="mb-4">Gestión de contratos</h2>
             {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if is_creating_new or form.instance.pk %}
+    <div class="card mb-4">
+        <div class="card-body">
             <form method="post" action="{% if form.instance.pk %}{% url 'actualizar_contrato' form.instance.pk form.instance.cliente.dni %}{% else %}{% url 'crear_contrato' cliente.dni propiedad.ID_prop %}{% endif %}">
                 {% csrf_token %}
                 {% for field in form %}
                 <div class="form-group">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field|add_class:"form-control" }}
+                    {% if field.name == 'cliente' or field.name == 'propiedades' %}
+                        <!-- Renderiza el campo como solo lectura -->
+                        <input type="text" class="form-control" id="{{ field.id_for_label }}" name="{{ field.name }}" value="{{ field.value }}" readonly>
+                    {% else %}
+                        <!-- Renderiza los campos, incluidos los de fecha, normalmente -->
+                        {{ field|add_class:"form-control" }}
+                    {% endif %}
                     {% if field.help_text %}
-                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
                     {% endif %}
                 </div>
                 {% endfor %}
@@ -59,7 +53,9 @@
             </form>
         </div>
     </div>
-    {% endif %}
+{% endif %}
+
+    
     
     <!-- Formulario de búsqueda -->
     <form method="get" class="mb-4">

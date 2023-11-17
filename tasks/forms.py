@@ -18,12 +18,21 @@ class ContratoForm(forms.ModelForm):
         model = Contrato
         fields = ['cliente', 'propiedades', 'fecha_inicio', 'fecha_fin', 'descripcion']
         widgets = {
-            'fecha_inicio': forms.DateInput(attrs={'type': 'date'}),
-            'fecha_fin': forms.DateInput(attrs={'type': 'date'}),
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+            'fecha_fin': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+        }  
+        labels = {
+             'cliente': 'DNI Cliente',
+            'propiedades': 'Propiedad ID'
         }
 
     def __init__(self, *args, **kwargs):
         super(ContratoForm, self).__init__(*args, **kwargs)
+         
+        if self.instance and self.instance.pk:
+            self.fields['fecha_inicio'].initial = self.instance.fecha_inicio
+            self.fields['fecha_fin'].initial = self.instance.fecha_fin
+
 
         # Establece automáticamente el ID de propiedad y el DNI del cliente si están disponibles en la solicitud
         if 'initial' in kwargs:
