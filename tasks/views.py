@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.db import IntegrityError
+from reportlab.lib.utils import ImageReader
 from django.urls import reverse
 from django.db.models import Q
 from django.http import HttpResponse
@@ -10,10 +11,11 @@ from django.contrib.auth import login, logout, authenticate
 from .models import Cliente, Propiedades, Contrato
 from .forms import ClienteForm, PropiedadesForm, ContratoForm
 import os
+from io import BytesIO
 from datetime import datetime
 from django.conf import settings
 import textwrap
-
+from PIL import Image
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 
@@ -311,6 +313,7 @@ def eliminar_contrato(request, id_contrato, dni_cliente):
     return render(request, 'confirmar_eliminacion.html', {'contrato': contrato, 'dni_cliente': dni_cliente})
 
 
+
 def generar_contrato_pdf(request, id_contrato):
     contrato = get_object_or_404(Contrato, id_contrato=id_contrato)
     cliente = contrato.cliente
@@ -348,6 +351,33 @@ def generar_contrato_pdf(request, id_contrato):
             y_position -= 15
         y_position -= 10  # Espacio adicional entre cláusulas
 
+    # Agregar logo de empresa como marca de agua
+    logo_empresa_relative_path = 'propiedades/logo.png'  # Ruta relativa al logo en la carpeta 'media'
+    logo_empresa_path = os.path.join('media', logo_empresa_relative_path)  # Ruta completa al logo de empresa
+
+    # Cargar el logo como una imagen de PIL
+    logo = Image.open(logo_empresa_path)
+    
+    # Calcular el tamaño y posición del logo como marca de agua
+    width, height = logo.size
+    aspect_ratio = width / height
+    max_width = 400  # Ancho máximo del logo como marca de agua
+    max_height = 200  # Altura máxima del logo como marca de agua
+    
+    if width > max_width:
+        width = max_width
+        height = int(max_width / aspect_ratio)
+    
+    if height > max_height:
+        height = max_height
+        width = int(max_height * aspect_ratio)
+    
+    x = (letter[0] - width) / 2  # Centrar horizontalmente
+    y = (letter[1] - height) / 2  # Centrar verticalmente
+    
+    # Añadir el logo como marca de agua
+    p.drawImage(logo_empresa_path, x, y, width=width, height=height, preserveAspectRatio=True, mask='auto')
+
     # Espacio para las firmas
     p.setFont("Times-Roman", 12)
     p.drawString(50, y_position - 40, "Firma del Propietario: ___________________________")
@@ -357,4 +387,3 @@ def generar_contrato_pdf(request, id_contrato):
     p.showPage()
     p.save()
     return response
-
