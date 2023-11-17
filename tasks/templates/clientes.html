@@ -36,6 +36,7 @@
                         {% csrf_token %}
                         {{ form.as_p }}
                         <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar</button>
+                        <input type="hidden" name="propiedad_id" value="">
 
                     </form>
                 </div>
@@ -117,7 +118,25 @@
 {% endblock %}
 
 {% block extra_scripts %}
+
 <script>
+    document.querySelectorAll('.edit-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        let id = this.getAttribute('data-id');
+        let form = document.querySelector('#propiedadModal form');
+        form.action = `/propiedades/${id}/edit/`;  // Ajusta esta URL según tus rutas
+        form.querySelector('input[name="propiedad_id"]').value = id; // Campo oculto para identificar la propiedad
+
+        // Cargar la información existente en el formulario
+        form.querySelector('[name="direccion"]').value = this.getAttribute('data-direccion');
+        form.querySelector('[name="area_total"]').value = this.getAttribute('data-area_total');
+        form.querySelector('[name="nro_habitaciones"]').value = this.getAttribute('data-nro_habitaciones');
+        form.querySelector('[name="precio_alq"]').value = this.getAttribute('data-precio_alq');
+        form.querySelector('[name="descripcion"]').value = this.getAttribute('data-descripcion');
+    });
+});
+
     function confirmDelete() {
         return Swal.fire({
             title: '¿Estás seguro?',

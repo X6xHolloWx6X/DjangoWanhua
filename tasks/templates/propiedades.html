@@ -142,7 +142,7 @@
                         <div class="card-body">
                             <h5 class="card-title">Propiedad ID: {{ propiedad.ID_prop }}</h5>
                             <p class="card-text">Dirección: {{ propiedad.direccion }}</p>
-                            <p class="card-text">Área Total: {{ propiedad.area_total }}</p>
+                            <p class="card-text">Área total por m²: {{ propiedad.area_total }}</p>
                             <p class="card-text">Número de Habitaciones: {{ propiedad.nro_habitaciones }}</p>
                             <p class="card-text">Precio de Alquiler: {{ propiedad.precio_alq }}</p>
                             <p class="card-text">Descripción: {{ propiedad.descripcion }}</p>
@@ -152,6 +152,8 @@
                                 </a>
                                 <button type="button" class="btn btn-warning edit-btn" data-toggle="modal" data-target="#propiedadModal" data-id="{{ propiedad.ID_prop }}" data-direccion="{{ propiedad.direccion }}" data-area_total="{{ propiedad.area_total }}" data-nro_habitaciones="{{ propiedad.nro_habitaciones }}" data-precio_alq="{{ propiedad.precio_alq }}" data-descripcion="{{ propiedad.descripcion }}">
                                     <i class="fas fa-edit"></i> Editar
+                                </button>
+                                
                                 </button>
                                 <button data-href="{% url 'propiedades_delete' propiedad.ID_prop %}" class="btn btn-danger delete-btn">
                                     <i class="fas fa-trash"></i> Eliminar
@@ -206,7 +208,7 @@
                                         <div class="col-md-6">
                                             <h5 class="mb-3">Propiedad ID: {{ propiedad.ID_prop }}</h5>
                                             <p><strong>Dirección:</strong> {{ propiedad.direccion }}</p>
-                                            <p><strong>Área Total:</strong> {{ propiedad.area_total }}</p>
+                                            <p><strong>Área total por m²:</strong> {{ propiedad.area_total }}</p>
                                             <p><strong>Número de Habitaciones:</strong> {{ propiedad.nro_habitaciones }}</p>
                                             <p><strong>Precio de Alquiler:</strong> {{ propiedad.precio_alq }}</p>
                                             <p><strong>Descripción:</strong> {{ propiedad.descripcion }}</p>
@@ -263,51 +265,52 @@ document.querySelectorAll('.delete-btn').forEach(button => {
         });
     });
 });
-
 document.querySelectorAll('.edit-btn').forEach(button => {
     button.addEventListener('click', function(e) {
         e.preventDefault();
-        let id = this.getAttribute('data-id');
-        let form = document.querySelector('#propiedadModal form');
-        form.action = `/propiedades/${id}/edit/`;
 
-        // Cargar la información en el formulario
-        form.querySelector('[name="direccion"]').value = this.getAttribute('data-direccion');
-        form.querySelector('[name="area_total"]').value = this.getAttribute('data-area_total');
-        form.querySelector('[name="nro_habitaciones"]').value = this.getAttribute('data-nro_habitaciones');
-        form.querySelector('[name="precio_alq"]').value = this.getAttribute('data-precio_alq');
-        form.querySelector('[name="descripcion"]').value = this.getAttribute('data-descripcion');
+        let form = document.querySelector('#propiedadModal form');
+        let actionUrl = `/propiedades/${this.getAttribute('data-id')}/edit/`;
+        form.action = actionUrl;
+
+        let fields = ['direccion', 'area_total', 'nro_habitaciones', 'precio_alq', 'descripcion'];
+        fields.forEach(field => {
+            let value = this.getAttribute(`data-${field}`);
+            let inputField = form.querySelector(`[name="${field}"]`);
+            if (inputField && value !== null) {
+                // Reemplazar comas por puntos si es necesario (para números decimales)
+                if(field === 'area_total' || field === 'precio_alq') {
+                    value = value.replace(',', '.');
+                }
+                inputField.value = value;
+            }
+        });
+
+        // Actualizar el título del modal y el texto del botón
+        let modalLabel = document.getElementById('propiedadModalLabel');
+        if(modalLabel) {
+            modalLabel.textContent = 'Editar Propiedad';
+        }
+
+        let submitButton = form.querySelector('[type="submit"]');
+        if(submitButton) {
+            submitButton.textContent = 'Actualizar';
+        }
     });
 });
+
+
 
 // Cuando se abre el modal para agregar una nueva propiedad
 $('#propiedadModal').on('show.bs.modal', function (event) {
-    let button = $(event.relatedTarget); // Botón que activó el modal
+    let button = $(event.relatedTarget);
     let modal = $(this);
     
-    // Si el botón es el de "Agregar Propiedad"
     if (button.data('action') === 'add') {
-        // Establecer el valor del campo relacionado con el cliente al cliente actual
+        modal.find('form')[0].reset(); // Resetear el formulario
+        modal.find('form').attr('action', '/propiedades/add/'); // Ajustar la acción del formulario
         modal.find('input[name="cliente"]').val('{{ cliente.dni }}');
     }
 });
-$(document).ready(function () {
-        $('.img-zoomable').elevateZoom({
-            zoomType: 'inner',
-            cursor: 'crosshair'
-        });
-    });
-
-    document.querySelectorAll('.delete-btn').forEach(button => {
-        button.addEventListener('click', function(e) {
-            // ... (sin cambios) ...
-        });
-    });
-
-    document.querySelectorAll('.edit-btn').forEach(button => {
-        button.addEventListener('click', function(e) {
-            // ... (sin cambios) ...
-        });
-    });
 </script>
 {% endblock %}
