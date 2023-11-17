@@ -238,12 +238,23 @@ def listar_contratos_cliente(request, dni_cliente):
     dni_cliente = dni_cliente  # Puedes mantenerlo si lo necesitas
     return render(request, 'contratos.html', {'contratos': contratos_paginated, 'dni_cliente': dni_cliente})
 
-def listar_contratos(request):
-    contratos = Contrato.objects.all()
+
+
+def listar_contratos(request, dni_cliente=None):
+    cliente = None
+    if dni_cliente:
+        cliente = get_object_or_404(Cliente, dni=dni_cliente)
+        contratos = Contrato.objects.filter(cliente=cliente)
+    else:
+        contratos = Contrato.objects.all()
+
     for contrato in contratos:
         contrato.fecha_inicio = contrato.fecha_inicio.strftime('%d/%m/%Y')
         contrato.fecha_fin = contrato.fecha_fin.strftime('%d/%m/%Y')
-    return render(request, 'contratos.html', {'contratos': contratos})
+
+    return render(request, 'contratos.html', {'contratos': contratos, 'cliente': cliente})
+
+
 
 
 def crear_contrato(request, dni_cliente, propiedad_id):
@@ -257,11 +268,10 @@ def crear_contrato(request, dni_cliente, propiedad_id):
             nuevo_contrato.cliente = cliente
             nuevo_contrato.propiedades = propiedad
             nuevo_contrato.save()
-            return redirect('listar_contratos')
+            # Redirigir a la página de listado de contratos del cliente específico
+            return redirect('listar_contratos_cliente', dni_cliente=dni_cliente)
     else:
         form = ContratoForm(initial={'cliente': cliente, 'propiedades': propiedad})
-
-        # Hacer campos de solo lectura
         form.fields['cliente'].widget.attrs['readonly'] = True
         form.fields['propiedades'].widget.attrs['readonly'] = True
 
