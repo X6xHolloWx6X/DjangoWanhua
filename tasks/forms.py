@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Cliente, Propiedades, Contrato
-
+from .models import Cliente, Propiedades, Contrato, Convenio
+from datetime import date
 class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente
@@ -68,3 +68,37 @@ class ContratoForm(forms.ModelForm):
                     raise ValidationError("Las fechas del contrato se solapan con otro contrato existente para esta propiedad.")
 
         return cleaned_data
+
+class ConvenioForm(forms.ModelForm):
+    class Meta:
+        model = Convenio
+        fields = ['id_contrato', 'fecha_inicio', 'fecha_fin', 'descripcion']
+        widgets = {
+            'fecha_inicio': forms.DateInput(format='%d/%m/%Y', attrs={'class': 'datepicker'}),
+            'fecha_fin': forms.DateInput(format='%d/%m/%Y', attrs={'class': 'datepicker'}),
+            # Si decides ocultar el campo id_contrato, puedes usar forms.HiddenInput()
+            'id_contrato': forms.HiddenInput()
+        }
+
+    def __init__(self, *args, **kwargs):
+        contrato_id = kwargs.pop('contrato_id', None)
+        super(ConvenioForm, self).__init__(*args, **kwargs)
+        if contrato_id:
+            self.fields['id_contrato'].initial = contrato_id
+            # Si no quieres que el usuario cambie este campo, puedes deshabilitarlo
+            self.fields['id_contrato'].disabled = True
+    
+    def clean_fecha_inicio(self):
+        fecha_inicio = self.cleaned_data.get('fecha_inicio')
+        # Asegúrate de que la fecha de inicio no sea una fecha pasada
+        if fecha_inicio < date.today():
+            raise ValidationError('La fecha de inicio no puede ser en el pasado.')
+        return fecha_inicio
+
+    def clean_fecha_fin(self):
+        fecha_fin = self.cleaned_data.get('fecha_fin')
+        fecha_inicio = self.cleaned_data.get('fecha_inicio')
+        # Asegúrate de que la fecha de fin sea posterior a la fecha de inicio
+        if fecha_fin and fecha_inicio and fecha_fin < fecha_inicio:
+            raise ValidationError('La fecha de fin no puede ser anterior a la fecha de inicio.')
+        return fecha_fin

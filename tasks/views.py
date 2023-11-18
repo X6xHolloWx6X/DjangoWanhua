@@ -8,8 +8,8 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import login, logout, authenticate
-from .models import Cliente, Propiedades, Contrato
-from .forms import ClienteForm, PropiedadesForm, ContratoForm
+from .models import Cliente, Propiedades, Contrato, Convenio
+from .forms import ClienteForm, PropiedadesForm, ContratoForm, ConvenioForm
 import os
 from io import BytesIO
 from datetime import datetime
@@ -387,3 +387,56 @@ def generar_contrato_pdf(request, id_contrato):
     p.showPage()
     p.save()
     return response
+
+def listar_convenios(request, id_contrato):
+    contrato = get_object_or_404(Contrato, id_contrato=id_contrato)
+    convenios = Convenio.objects.filter(id_contrato=contrato)
+    form = ConvenioForm(initial={'id_contrato': contrato.id_contrato})
+
+    return render(request, 'convenios.html', {
+        'contrato': contrato,
+        'convenios': convenios,
+        'form': form,
+        'modo': 'listar',
+    })
+
+def crear_convenio(request, id_contrato):
+    contrato = get_object_or_404(Contrato, id_contrato=id_contrato)
+    if request.method == 'POST':
+        form = ConvenioForm(request.POST)
+        if form.is_valid():
+            nuevo_convenio = form.save(commit=False)
+            nuevo_convenio.id_contrato = contrato
+            nuevo_convenio.save()
+            return redirect('listar_convenios', id_contrato=id_contrato)
+    else:
+        form = ConvenioForm(initial={'id_contrato': contrato.id_contrato})
+
+    return render(request, 'convenios.html', {
+        'contrato': contrato,
+        'form': form,
+        'modo': 'crear',
+    })
+
+def actualizar_convenio(request, id_convenio):
+    convenio = get_object_or_404(Convenio, ID_convenio=id_convenio)
+    if request.method == 'POST':
+        form = ConvenioForm(request.POST, instance=convenio)
+        if form.is_valid():
+            form.save()
+            return redirect('listar_convenios', id_contrato=convenio.id_contrato.id_contrato)
+    else:
+        form = ConvenioForm(instance=convenio)
+
+    return render(request, 'convenios.html', {
+        'contrato': convenio.id_contrato,
+        'form': form,
+        'modo': 'actualizar',
+        'convenio': convenio,
+    })
+
+def eliminar_convenio(request, id_convenio):
+    convenio = get_object_or_404(Convenio, ID_convenio=id_convenio)
+    id_contrato = convenio.id_contrato.id_contrato
+    convenio.delete()
+    return redirect('listar_convenios', id_contrato=id_contrato)
