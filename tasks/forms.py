@@ -74,31 +74,35 @@ class ConvenioForm(forms.ModelForm):
         model = Convenio
         fields = ['id_contrato', 'fecha_inicio', 'fecha_fin', 'descripcion']
         widgets = {
-            'fecha_inicio': forms.DateInput(format='%d/%m/%Y', attrs={'class': 'datepicker'}),
-            'fecha_fin': forms.DateInput(format='%d/%m/%Y', attrs={'class': 'datepicker'}),
-            # Si decides ocultar el campo id_contrato, puedes usar forms.HiddenInput()
-            'id_contrato': forms.HiddenInput()
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+            'fecha_fin': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
         }
 
     def __init__(self, *args, **kwargs):
-        contrato_id = kwargs.pop('contrato_id', None)
         super(ConvenioForm, self).__init__(*args, **kwargs)
-        if contrato_id:
-            self.fields['id_contrato'].initial = contrato_id
-            # Si no quieres que el usuario cambie este campo, puedes deshabilitarlo
-            self.fields['id_contrato'].disabled = True
-    
-    def clean_fecha_inicio(self):
-        fecha_inicio = self.cleaned_data.get('fecha_inicio')
-        # Asegúrate de que la fecha de inicio no sea una fecha pasada
-        if fecha_inicio < date.today():
-            raise ValidationError('La fecha de inicio no puede ser en el pasado.')
-        return fecha_inicio
 
-    def clean_fecha_fin(self):
-        fecha_fin = self.cleaned_data.get('fecha_fin')
-        fecha_inicio = self.cleaned_data.get('fecha_inicio')
-        # Asegúrate de que la fecha de fin sea posterior a la fecha de inicio
-        if fecha_fin and fecha_inicio and fecha_fin < fecha_inicio:
-            raise ValidationError('La fecha de fin no puede ser anterior a la fecha de inicio.')
-        return fecha_fin
+        if self.instance and self.instance.pk:
+            self.fields['fecha_inicio'].initial = self.instance.fecha_inicio
+            self.fields['fecha_fin'].initial = self.instance.fecha_fin
+
+    def clean(self):
+        cleaned_data = super().clean()
+        fecha_inicio = cleaned_data.get("fecha_inicio")
+        fecha_fin = cleaned_data.get("fecha_fin")
+        id_contrato = cleaned_data.get("id_contrato")
+
+        if fecha_inicio and fecha_fin:
+            if fecha_inicio > fecha_fin:
+                raise ValidationError("La fecha de inicio no puede ser posterior a la fecha de fin.")
+
+            # Verificar si hay solapamiento de fechas con otros convenios del mismo contrato
+            convenios_existentes = Convenio.objects.filter(id_contrato=id_contrato)
+
+            if self.instance and self.instance.pk:
+                convenios_existentes = convenios_existentes.exclude(pk=self.instance.pk)
+
+            for convenio in convenios_existentes:
+                if (fecha_inicio <= convenio.fecha_fin and fecha_fin >= convenio.fecha_inicio):
+                    raise ValidationError("Las fechas del convenio se solapan con otro convenio existente para este contrato.")
+
+        return cleaned_data

@@ -244,17 +244,18 @@ def listar_contratos_cliente(request, dni_cliente):
 
 def listar_contratos(request, dni_cliente=None):
     cliente = None
+    id_contrato = None  # Inicializa id_contrato como None
+
     if dni_cliente:
         cliente = get_object_or_404(Cliente, dni=dni_cliente)
         contratos = Contrato.objects.filter(cliente=cliente)
-    else:
-        contratos = Contrato.objects.all()
 
     for contrato in contratos:
         contrato.fecha_inicio = contrato.fecha_inicio.strftime('%d/%m/%Y')
         contrato.fecha_fin = contrato.fecha_fin.strftime('%d/%m/%Y')
 
-    return render(request, 'contratos.html', {'contratos': contratos, 'cliente': cliente})
+    return render(request, 'contratos.html', {'contratos': contratos, 'cliente': cliente, 'id_contrato': id_contrato})
+
 
 
 
@@ -310,7 +311,7 @@ def eliminar_contrato(request, id_contrato, dni_cliente):
         contrato.delete()
         return redirect('listar_contratos_cliente', dni_cliente=dni_cliente)
 
-    return render(request, 'confirmar_eliminacion.html', {'contrato': contrato, 'dni_cliente': dni_cliente})
+    return render(request, 'convenios.html', {'contrato': contrato, 'dni_cliente': dni_cliente})
 
 
 
@@ -335,7 +336,7 @@ def generar_contrato_pdf(request, id_contrato):
     p.drawString(50, 750, f"Propiedad: {propiedad.direccion} (Área: {propiedad.area_total}m², Habitaciones: {propiedad.nro_habitaciones})")
     p.drawString(50, 735, f"Valor de Alquiler Estimado: ${propiedad.precio_alq}")
 
-    # Cláusulas del contrato
+    # Cláusulas del contrato    
     p.setFont("Times-Roman", 11)
     clausulas = [
         f"CLÁUSULA PRIMERA: Objeto del Contrato - El presente contrato tiene por objeto la administración de la propiedad indicada, por parte de Inmobiliaria Wanhua, quien actuará como administrador de la misma.",
@@ -388,20 +389,17 @@ def generar_contrato_pdf(request, id_contrato):
     p.save()
     return response
 
+# En tu vista listar_convenios
 def listar_convenios(request, id_contrato):
-    contrato = get_object_or_404(Contrato, id_contrato=id_contrato)
-    convenios = Convenio.objects.filter(id_contrato=contrato)
-    form = ConvenioForm(initial={'id_contrato': contrato.id_contrato})
+    contrato = get_object_or_404(Contrato, id_contrato=id_contrato)  # Usar 'id_contrato' en lugar de 'id'
+    convenios = Convenio.objects.filter(id_contrato=contrato)  # Usar 'id_contrato' para el filtro
+    return render(request, 'convenios.html', {'convenios': convenios, 'contrato': contrato, 'id_contrato': id_contrato})
 
-    return render(request, 'convenios.html', {
-        'contrato': contrato,
-        'convenios': convenios,
-        'form': form,
-        'modo': 'listar',
-    })
 
+
+# En tu vista crear_convenio
 def crear_convenio(request, id_contrato):
-    contrato = get_object_or_404(Contrato, id_contrato=id_contrato)
+    contrato = get_object_or_404(Contrato, pk=id_contrato)
     if request.method == 'POST':
         form = ConvenioForm(request.POST)
         if form.is_valid():
@@ -410,33 +408,34 @@ def crear_convenio(request, id_contrato):
             nuevo_convenio.save()
             return redirect('listar_convenios', id_contrato=id_contrato)
     else:
-        form = ConvenioForm(initial={'id_contrato': contrato.id_contrato})
+        form = ConvenioForm(initial={'id_contrato': contrato})
+    return render(request, 'convenios.html', {'form': form, 'id_contrato': id_contrato})
 
-    return render(request, 'convenios.html', {
-        'contrato': contrato,
-        'form': form,
-        'modo': 'crear',
-    })
 
-def actualizar_convenio(request, id_convenio):
-    convenio = get_object_or_404(Convenio, ID_convenio=id_convenio)
+
+def editar_convenio(request, id_convenio):
+    convenio = get_object_or_404(Convenio, pk=id_convenio)
+    id_contrato = convenio.id_contrato.id_contrato  # Usar 'id_contrato' en lugar de 'id'
+
     if request.method == 'POST':
         form = ConvenioForm(request.POST, instance=convenio)
         if form.is_valid():
             form.save()
-            return redirect('listar_convenios', id_contrato=convenio.id_contrato.id_contrato)
+            return redirect('listar_convenios', id_contrato=id_contrato)
     else:
         form = ConvenioForm(instance=convenio)
 
-    return render(request, 'convenios.html', {
-        'contrato': convenio.id_contrato,
-        'form': form,
-        'modo': 'actualizar',
-        'convenio': convenio,
-    })
+    return render(request, 'convenios.html', {'form': form, 'convenio': convenio, 'id_contrato': id_contrato})
+
+
+
+
+
 
 def eliminar_convenio(request, id_convenio):
-    convenio = get_object_or_404(Convenio, ID_convenio=id_convenio)
-    id_contrato = convenio.id_contrato.id_contrato
-    convenio.delete()
-    return redirect('listar_convenios', id_contrato=id_contrato)
+    convenio = get_object_or_404(Convenio, pk=id_convenio)
+    id_contrato = convenio.id_contrato.id_contrato  # Asegúrate de que este es el campo correcto en tu modelo
+    if request.method == 'POST':
+        convenio.delete()
+        return redirect('listar_convenios', id_contrato=id_contrato)
+    return render(request, 'convenios.html', {'convenio_a_eliminar': convenio})
