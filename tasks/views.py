@@ -9,6 +9,8 @@ from django.http import HttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import login, logout, authenticate
 from .models import Cliente, Propiedades, Contrato, Convenio
+from django.contrib import messages
+
 from .forms import ClienteForm, PropiedadesForm, ContratoForm, ConvenioForm
 import os
 from io import BytesIO
@@ -227,7 +229,7 @@ def listar_contratos_cliente(request, dni_cliente):
             Q(descripcion__icontains=search_query)
         )
 
-    paginator = Paginator(contratos, 2)
+    paginator = Paginator(contratos, 1)
     page = request.GET.get('page')
 
     try:
@@ -243,21 +245,40 @@ def listar_contratos_cliente(request, dni_cliente):
 
 
 def listar_contratos(request, dni_cliente=None):
-    cliente = None
-    id_contrato = None  # Inicializa id_contrato como None
+    search_query = request.GET.get('search', '')
+
+    contratos_list = Contrato.objects.all()
 
     if dni_cliente:
         cliente = get_object_or_404(Cliente, dni=dni_cliente)
-        contratos = Contrato.objects.filter(cliente=cliente)
+        contratos_list = contratos_list.filter(cliente=cliente)
+    else:
+        cliente = None
 
+    # Aplicar filtro de búsqueda
+    if search_query:
+        if search_query.isdigit():
+            # Si el término de búsqueda es numérico, busca por ID de Contrato o ID de Propiedad
+            contratos_list = contratos_list.filter(
+                Q(id_contrato=search_query) |
+                Q(propiedades__ID_prop=search_query)  # Uso del campo clave primaria correcto
+            )
+
+    # Paginación
+    paginator = Paginator(contratos_list, 1)
+    page_number = request.GET.get('page')
+    contratos = paginator.get_page(page_number)
+
+    # Formateo de fechas
     for contrato in contratos:
         contrato.fecha_inicio = contrato.fecha_inicio.strftime('%d/%m/%Y')
         contrato.fecha_fin = contrato.fecha_fin.strftime('%d/%m/%Y')
 
-    return render(request, 'contratos.html', {'contratos': contratos, 'cliente': cliente, 'id_contrato': id_contrato})
-
-
-
+    return render(request, 'contratos.html', {
+        'contratos': contratos,
+        'cliente': cliente,
+        'search_query': search_query
+    })
 
 
 def crear_contrato(request, dni_cliente, propiedad_id):
@@ -271,6 +292,9 @@ def crear_contrato(request, dni_cliente, propiedad_id):
             nuevo_contrato.cliente = cliente
             nuevo_contrato.propiedades = propiedad
             nuevo_contrato.save()
+            
+            messages.success(request, 'Contrato creado exitosamente.')  # Mensaje de éxito
+            
             # Redirigir a la página de listado de contratos del cliente específico
             return redirect('listar_contratos_cliente', dni_cliente=dni_cliente)
     else:
@@ -294,6 +318,9 @@ def actualizar_contrato(request, id_contrato, dni_cliente):
         form = ContratoForm(request.POST, instance=contrato)
         if form.is_valid():
             form.save()
+            
+            messages.success(request, 'Contrato actualizado exitosamente.')  # Mensaje de éxito
+            
             return redirect('listar_contratos_cliente', dni_cliente=dni_cliente)
     else:
         form = ContratoForm(instance=contrato)
@@ -304,11 +331,13 @@ def actualizar_contrato(request, id_contrato, dni_cliente):
 
     return render(request, 'contratos.html', {'form': form, 'contrato': contrato, 'dni_cliente': dni_cliente})
 
-
 def eliminar_contrato(request, id_contrato, dni_cliente):
     contrato = get_object_or_404(Contrato, id_contrato=id_contrato)
     if request.method == 'POST':
         contrato.delete()
+        
+        messages.success(request, 'Contrato eliminado exitosamente.')  # Mensaje de éxito
+        
         return redirect('listar_contratos_cliente', dni_cliente=dni_cliente)
 
     return render(request, 'convenios.html', {'contrato': contrato, 'dni_cliente': dni_cliente})
@@ -389,12 +418,34 @@ def generar_contrato_pdf(request, id_contrato):
     p.save()
     return response
 
-# En tu vista listar_convenios
 def listar_convenios(request, id_contrato):
-    contrato = get_object_or_404(Contrato, id_contrato=id_contrato)  # Usar 'id_contrato' en lugar de 'id'
-    convenios = Convenio.objects.filter(id_contrato=contrato)  # Usar 'id_contrato' para el filtro
-    return render(request, 'convenios.html', {'convenios': convenios, 'contrato': contrato, 'id_contrato': id_contrato})
+    contrato = get_object_or_404(Contrato, id_contrato=id_contrato)
+    convenios_list = Convenio.objects.filter(id_contrato=contrato)
 
+    # Búsqueda
+    search_query = request.GET.get('search', '')  # Obtener el parámetro de búsqueda de la URL
+    if search_query:
+        if search_query.isdigit():
+            # Si el término de búsqueda es un número, intenta buscar por ID del Convenio
+            convenios_list = convenios_list.filter(id_convenio=int(search_query))
+        else:
+            # Si no es un número, realiza una búsqueda en los campos de texto
+            convenios_list = convenios_list.filter(
+                Q(descripcion__icontains=search_query) |
+                Q(id_contrato__descripcion__icontains=search_query)
+            )
+
+    # Paginación
+    paginator = Paginator(convenios_list, 1)  # Mostrar 10 convenios por página
+    page_number = request.GET.get('page')
+    convenios = paginator.get_page(page_number)
+
+    return render(request, 'convenios.html', {
+        'convenios': convenios, 
+        'contrato': contrato, 
+        'id_contrato': id_contrato,
+        'search_query': search_query  # Pasar la consulta de búsqueda a la plantilla
+    })
 
 
 # En tu vista crear_convenio

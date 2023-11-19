@@ -57,15 +57,15 @@
 
     
     
-    <!-- Formulario de búsqueda -->
-    <form method="get" class="mb-4">
-        <div class="input-group">
-            <input type="text" class="form-control" name="search" placeholder="Buscar...">
-            <div class="input-group-append">
-                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Buscar</button>
-            </div>
+<!-- Formulario de búsqueda -->
+<form method="get" class="mb-4">
+    <div class="input-group">
+        <input type="text" class="form-control" name="search" placeholder="Buscar por ID de Contrato o ID de Propiedad...">
+        <div class="input-group-append">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Buscar</button>
         </div>
-    </form>
+    </div>
+</form>
     
     <!-- Listado de contratos -->
     <div class="card">
@@ -101,11 +101,9 @@
                         <td>
                             <a href="{% url 'actualizar_contrato' contrato.id_contrato contrato.cliente.dni %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Editar</a>
                             <a href="{% url 'generar_contrato_pdf' id_contrato=contrato.id_contrato %}" class="btn btn-sm btn-info"><i class="fas fa-file-pdf"></i> PDF</a>
-                            {% if contrato.tiene_convenios %}
-    <a href="{% url 'listar_convenios' contrato.id_contrato %}" class="btn btn-sm btn-primary">
-        <i class="fas fa-handshake"></i> Ver Convenios
-    </a>
-{% endif %}
+                            {% if contrato.tiene_convenios %}  <!-- Suponiendo 'tiene_convenios' es un método o propiedad -->
+                                <a href="{% url 'listar_convenios' contrato.id_contrato %}" class="btn btn-sm btn-primary"><i class="fas fa-handshake"></i> Ver Convenios</a>
+                            {% endif %}
                             <a href="{% url 'crear_convenio' contrato.id_contrato %}" class="btn btn-sm btn-success"><i class="fas fa-plus"></i> Agregar Convenio</a>
                             <form action="{% url 'eliminar_contrato' contrato.id_contrato contrato.cliente.dni %}" method="post" style="display: inline;">
                                 {% csrf_token %}

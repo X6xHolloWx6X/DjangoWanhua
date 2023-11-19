@@ -14,6 +14,15 @@
     <button onclick="history.back()" class="btn btn-success mb-3">
         <i class="fas fa-arrow-left"></i> Volver Atrás
     </button>
+<!-- Formulario de búsqueda -->
+<form method="get" class="mb-4">
+    <div class="input-group">
+        <input type="text" class="form-control" name="search" placeholder="Buscar..." value="{{ search_query }}">
+        <div class="input-group-append">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Buscar</button>
+        </div>
+    </div>
+</form>
 
     {% url 'crear_convenio' as crear_url %}
     {% url 'editar_convenio' id_contrato=0 as base_editar_url %}
@@ -78,6 +87,24 @@
             {% endfor %}
         </tbody>
     </table>
+    <!-- Controles de paginación -->
+<div class="d-flex justify-content-center mt-4">
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            {% if convenios.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1&search={{ search_query|urlencode }}">Primero</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ convenios.previous_page_number }}&search={{ search_query|urlencode }}">Anterior</a></li>
+            {% endif %}
+            
+            <li class="page-item active"><span class="page-link">{{ convenios.number }}</span></li>
+            
+            {% if convenios.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ convenios.next_page_number }}&search={{ search_query|urlencode }}">Siguiente</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ convenios.paginator.num_pages }}&search={{ search_query|urlencode }}">Último</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
 </div>
 
 <script>
