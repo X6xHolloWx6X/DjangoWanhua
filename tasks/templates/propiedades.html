@@ -126,7 +126,7 @@
             </div>
             
             <!-- Tarjetas de propiedades -->
-            <div class="row">
+            <div class="row justify-content-center">
                 {% for propiedad in propiedades %}
                 <div class="col-md-4 mb-4 animate__animated animate__fadeInUp">
                     <div class="card">
@@ -147,22 +147,23 @@
                             <p class="card-text">Precio de Alquiler: {{ propiedad.precio_alq }}</p>
                             <p class="card-text">Descripción: {{ propiedad.descripcion }}</p>
                             <div class="text-center">
+                                <!-- coso botones ? -->
                                 <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#infoModal{{ propiedad.ID_prop }}">
-                                    <i class="fas fa-info-circle"></i> Ver Información
+                                    <i class="fas fa-info-circle"></i>
                                 </a>
                                 <button type="button" class="btn btn-warning edit-btn" data-toggle="modal" data-target="#propiedadModal" data-id="{{ propiedad.ID_prop }}" data-direccion="{{ propiedad.direccion }}" data-area_total="{{ propiedad.area_total }}" data-nro_habitaciones="{{ propiedad.nro_habitaciones }}" data-precio_alq="{{ propiedad.precio_alq }}" data-descripcion="{{ propiedad.descripcion }}">
-                                    <i class="fas fa-edit"></i> Editar
+                                    <i class="fas fa-edit"></i> 
                                 </button>
                                 <button data-href="{% url 'propiedades_delete' propiedad.ID_prop %}" class="btn btn-danger delete-btn">
-                                    <i class="fas fa-trash"></i> Eliminar
+                                    <i class="fas fa-trash"></i> 
                                 </button>
                                 <!-- Botón para Crear Contrato -->
                                 <a href="{% url 'crear_contrato' propiedad.cliente.dni propiedad.ID_prop %}" class="btn btn-success">
-                                    <i class="fas fa-plus"></i> Crear Contrato
+                                    <i class="fas fa-plus"></i> 
                                 </a>
                                 {% if propiedad.cliente.contrato_set.exists %} <!-- Verifica si el cliente tiene contratos -->
                                     <a href="{% url 'listar_contratos_cliente' propiedad.cliente.dni %}" class="btn btn-primary">
-                                        <i class="fas fa-list"></i> Ver Contratos del Cliente
+                                        <i class="fas fa-list"></i>
                                     </a>
                                 {% endif %}
                             </div>

@@ -78,12 +78,12 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <a href="{% url 'cliente_update' cliente.dni %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Editar</a>
-
-                                    <a href="{% url 'cliente_delete' cliente.dni %}" class="btn btn-sm btn-danger" onclick="return confirmDelete()"><i class="fas fa-trash-alt"></i> Eliminar</a>
-
+                                    <a href="{% url 'cliente_update' cliente.dni %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a> 
+                    
+                                    <a href="{% url 'cliente_delete' cliente.dni %}" class="btn btn-sm btn-danger" onclick="return confirmDelete()"><i class="fas fa-trash-alt"></i></a>
+                                    
                                     <!-- Ícono de la casa para redirigir a la página de propiedades -->
-                                    <a href="{% url 'propiedades_list_by_dni' cliente.dni %}" class="btn btn-sm btn-info"><i class="fas fa-home"></i> Agregar Propiedad</a>
+                                    <a href="{% url 'propiedades_list_by_dni' cliente.dni %}" class="btn btn-sm btn-info"><i class="fas fa-home"></i></a>
 
                                 </td>
                             </tr>
